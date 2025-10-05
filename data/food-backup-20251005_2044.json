@@ -1,0 +1,14 @@
+[
+  {
+    "name": "tin tomatoes",
+    "kcal_per_100g": 23,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "small tin",
+        "weight": 400
+      }
+    ],
+    "brand": "optio"
+  }
+]

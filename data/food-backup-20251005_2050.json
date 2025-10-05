@@ -1,0 +1,919 @@
+[
+  {
+    "name": "Almond Butter",
+    "brand": "",
+    "kcal_per_100g": 614,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "tsp",
+        "weight": 15
+      }
+    ]
+  },
+  {
+    "name": "Almond Meal",
+    "brand": "",
+    "kcal_per_100g": 580,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "tbsp",
+        "weight": 8
+      },
+      {
+        "name": "cup",
+        "weight": 95
+      }
+    ]
+  },
+  {
+    "name": "Almond Milk, Unsweetened",
+    "brand": "",
+    "kcal_per_100g": 25,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Apple",
+    "brand": "",
+    "kcal_per_100g": 50,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Small",
+        "weight": 150
+      },
+      {
+        "name": "Medium",
+        "weight": 180
+      },
+      {
+        "name": "Large",
+        "weight": 220
+      }
+    ]
+  },
+  {
+    "name": "Asian Style Beef Stir Fry",
+    "brand": "Woolworths",
+    "kcal_per_100g": 250,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Pack",
+        "weight": 250
+      }
+    ]
+  },
+  {
+    "name": "Asparagus",
+    "brand": "",
+    "kcal_per_100g": 20,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Bunch",
+        "weight": 150
+      }
+    ]
+  },
+  {
+    "name": "Avocado",
+    "brand": "",
+    "kcal_per_100g": 160,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Half",
+        "weight": 80
+      }
+    ]
+  },
+  {
+    "name": "Baby Spinach Leaves",
+    "brand": "",
+    "kcal_per_100g": 23,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Bacon Double Cheeseburger",
+    "brand": "Hungry Jack's",
+    "kcal_per_100g": 272,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Burger",
+        "weight": 187
+      }
+    ]
+  },
+  {
+    "name": "Banana",
+    "brand": "",
+    "kcal_per_100g": 89,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "small",
+        "weight": 90
+      },
+      {
+        "name": "medium",
+        "weight": 110
+      },
+      {
+        "name": "larges",
+        "weight": 140
+      }
+    ]
+  },
+  {
+    "name": "Basil Pesto",
+    "brand": "Coles",
+    "kcal_per_100g": 246,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Jar",
+        "weight": 190
+      }
+    ]
+  },
+  {
+    "name": "Beef Mince",
+    "brand": "",
+    "kcal_per_100g": 332,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Beef Strips",
+    "brand": "",
+    "kcal_per_100g": 250,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Black Beans, Tinned",
+    "brand": "",
+    "kcal_per_100g": 112,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "1/2 Tin",
+        "weight": 200
+      },
+      {
+        "name": "Tin",
+        "weight": 400
+      }
+    ]
+  },
+  {
+    "name": "Brazil Nut",
+    "brand": "",
+    "kcal_per_100g": 656,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Broccoli",
+    "brand": "",
+    "kcal_per_100g": 34,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Brown Rice (Microwave)",
+    "brand": "Sunrice",
+    "kcal_per_100g": 185,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Quick Cup",
+        "weight": 125
+      },
+      {
+        "name": "Half Small Pack",
+        "weight": 125
+      },
+      {
+        "name": "Small Pack",
+        "weight": 250
+      },
+      {
+        "name": "Quarter Large Pack",
+        "weight": 112
+      },
+      {
+        "name": "Half Large Pack",
+        "weight": 225
+      },
+      {
+        "name": "Large Pack",
+        "weight": 450
+      }
+    ]
+  },
+  {
+    "name": "Brown Rice Cup",
+    "brand": "Coles",
+    "kcal_per_100g": 218,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Cup",
+        "weight": 125
+      }
+    ]
+  },
+  {
+    "name": "Brussels Sprouts",
+    "brand": "",
+    "kcal_per_100g": 43,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Buk Choy",
+    "brand": "",
+    "kcal_per_100g": 19,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Bunch",
+        "weight": 150
+      }
+    ]
+  },
+  {
+    "name": "Butter",
+    "brand": "",
+    "kcal_per_100g": 717,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Butter Chicken Curry",
+    "brand": "Indian Cuisine",
+    "kcal_per_100g": 157,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Half Container",
+        "weight": 180
+      },
+      {
+        "name": "Whole Container",
+        "weight": 360
+      }
+    ]
+  },
+  {
+    "name": "Cabbage",
+    "brand": "",
+    "kcal_per_100g": 25,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Cacao and Orange Life Bar",
+    "brand": "Emma and Toms",
+    "kcal_per_100g": 419,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Bar",
+        "weight": 35
+      }
+    ]
+  },
+  {
+    "name": "Calories",
+    "brand": "",
+    "kcal_per_100g": 100,
+    "is_ingredient": false,
+    "quantities": []
+  },
+  {
+    "name": "Cannelini Beans",
+    "brand": "",
+    "kcal_per_100g": 67,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "1/2 Can",
+        "weight": 200
+      },
+      {
+        "name": "Can",
+        "weight": 400
+      }
+    ]
+  },
+  {
+    "name": "Cappuccino, Small",
+    "brand": "",
+    "kcal_per_100g": 120,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "cup",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "name": "Capsicum",
+    "brand": "",
+    "kcal_per_100g": 40,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Large",
+        "weight": 150
+      }
+    ]
+  },
+  {
+    "name": "Carrot",
+    "brand": "",
+    "kcal_per_100g": 41,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Large",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "name": "Cashews",
+    "brand": "",
+    "kcal_per_100g": 553,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Vending Packet",
+        "weight": 60
+      }
+    ]
+  },
+  {
+    "name": "Cauliflower",
+    "brand": "",
+    "kcal_per_100g": 23,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Cauliflower Bake",
+    "brand": "Market Fare",
+    "kcal_per_100g": 108,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "packet",
+        "weight": 800
+      }
+    ]
+  },
+  {
+    "name": "Cheddar Cheese",
+    "brand": "Bega",
+    "kcal_per_100g": 411,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Serving",
+        "weight": 25
+      }
+    ]
+  },
+  {
+    "name": "Cheese Spread",
+    "brand": "Laughing Cow",
+    "kcal_per_100g": 238,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Wedge",
+        "weight": 16
+      }
+    ]
+  },
+  {
+    "name": "Cherry Tomatoes",
+    "brand": "",
+    "kcal_per_100g": 29,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Chicken Breast (Skinless,Raw)",
+    "brand": "",
+    "kcal_per_100g": 105,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Large",
+        "weight": 315
+      }
+    ]
+  },
+  {
+    "name": "Chicken Mince",
+    "brand": "",
+    "kcal_per_100g": 149,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Chicken Sausage",
+    "brand": "Vic Market",
+    "kcal_per_100g": 172,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Sausage",
+        "weight": 130
+      }
+    ]
+  },
+  {
+    "name": "Chobani Plain",
+    "brand": "",
+    "kcal_per_100g": 57,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Tub",
+        "weight": 170
+      }
+    ]
+  },
+  {
+    "name": "Chocolate Chip Cookie",
+    "brand": "Coles",
+    "kcal_per_100g": 513,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Cookie",
+        "weight": 16
+      }
+    ]
+  },
+  {
+    "name": "Chocolate Peanut Slab",
+    "brand": "Whittakers",
+    "kcal_per_100g": 535,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Bar",
+        "weight": 50
+      }
+    ]
+  },
+  {
+    "name": "Coconut Milk (Unsweetened)",
+    "brand": "Vitasoy",
+    "kcal_per_100g": 25,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Coconut Milk - Tinned",
+    "brand": "",
+    "kcal_per_100g": 180,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Tin",
+        "weight": 400
+      }
+    ]
+  },
+  {
+    "name": "Creamed Cottage Cheese",
+    "brand": "",
+    "kcal_per_100g": 96,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Cucumber",
+    "brand": "",
+    "kcal_per_100g": 16,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Dairy Milk Hazelnut Chocolate",
+    "brand": "Cadbury",
+    "kcal_per_100g": 549,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Vending Bar",
+        "weight": 55
+      }
+    ]
+  },
+  {
+    "name": "Dark Chocolate",
+    "brand": "Lindt",
+    "kcal_per_100g": 576,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Square",
+        "weight": 10
+      }
+    ]
+  },
+  {
+    "name": "Dark Cooking Chocolate",
+    "brand": "",
+    "kcal_per_100g": 519,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Block",
+        "weight": 200
+      }
+    ]
+  },
+  {
+    "name": "Dhal Tadka",
+    "brand": "Maharaja's Choice",
+    "kcal_per_100g": 135,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Pack",
+        "weight": 283
+      }
+    ]
+  },
+  {
+    "name": "Dijon Mustard",
+    "brand": "Coles",
+    "kcal_per_100g": 100,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Edamame",
+    "brand": "Natures Protein",
+    "kcal_per_100g": 498,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "packet",
+        "weight": 52
+      }
+    ]
+  },
+  {
+    "name": "Egg",
+    "brand": "",
+    "kcal_per_100g": 155,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "medium",
+        "weight": 60
+      }
+    ]
+  },
+  {
+    "name": "Egg White",
+    "brand": "",
+    "kcal_per_100g": 52,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Hundred",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "name": "English Muffin",
+    "brand": "",
+    "kcal_per_100g": 224,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Muffin",
+        "weight": 66
+      }
+    ]
+  },
+  {
+    "name": "Fasting",
+    "brand": "",
+    "kcal_per_100g": 1,
+    "is_ingredient": false,
+    "quantities": []
+  },
+  {
+    "name": "Fetta Cheese",
+    "brand": "Lemnos",
+    "kcal_per_100g": 252,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Fish Sauce",
+    "brand": "",
+    "kcal_per_100g": 35,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "tsp",
+        "weight": 5
+      },
+      {
+        "name": "tbsp",
+        "weight": 21
+      }
+    ]
+  },
+  {
+    "name": "Flake, Raw",
+    "brand": "",
+    "kcal_per_100g": 130,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Flavoured Tuna Lunch Tin",
+    "brand": "",
+    "kcal_per_100g": 190,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Tin",
+        "weight": 95
+      }
+    ]
+  },
+  {
+    "name": "Flavoured Tuna Lunch Tin - Tomato and Basil",
+    "brand": "Woolworths",
+    "kcal_per_100g": 95,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "tin",
+        "weight": 95
+      }
+    ]
+  },
+  {
+    "name": "Flaxseed meal",
+    "brand": "",
+    "kcal_per_100g": 364,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "tbsp",
+        "weight": 12
+      }
+    ]
+  },
+  {
+    "name": "Frozen Spinach",
+    "brand": "",
+    "kcal_per_100g": 29,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Gerkin",
+    "brand": "",
+    "kcal_per_100g": 11,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Medium",
+        "weight": 40
+      }
+    ]
+  },
+  {
+    "name": "Giardiniera",
+    "brand": "Hoyts",
+    "kcal_per_100g": 21,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Gin",
+    "brand": "",
+    "kcal_per_100g": 263,
+    "is_ingredient": false,
+    "quantities": []
+  },
+  {
+    "name": "Ginger",
+    "brand": "",
+    "kcal_per_100g": 80,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Gluten Free Bread - White",
+    "brand": "Country Life",
+    "kcal_per_100g": 231,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "2 slices",
+        "weight": 70
+      }
+    ]
+  },
+  {
+    "name": "Gluten Free Pasta (Dried)",
+    "brand": "",
+    "kcal_per_100g": 353,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Gnocchi, Dried",
+    "brand": "",
+    "kcal_per_100g": 164,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Grated Parmesan Cheese",
+    "brand": "Kraft",
+    "kcal_per_100g": 458,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Green Beans (Frozen)",
+    "brand": "",
+    "kcal_per_100g": 46,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Green Chicken Curry with Rice",
+    "brand": "Sun Rice",
+    "kcal_per_100g": 125,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Pack",
+        "weight": 350
+      }
+    ]
+  },
+  {
+    "name": "Halo Top - Chocolate",
+    "brand": "",
+    "kcal_per_100g": 109,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Half Tub",
+        "weight": 130
+      },
+      {
+        "name": "Tub",
+        "weight": 260
+      }
+    ]
+  },
+  {
+    "name": "Ham (Packaged)",
+    "brand": "",
+    "kcal_per_100g": 105,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Hazelnut Creme",
+    "brand": "Choceur",
+    "kcal_per_100g": 555,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Bar",
+        "weight": 40
+      }
+    ]
+  },
+  {
+    "name": "High Protein Shake",
+    "brand": "Musashi",
+    "kcal_per_100g": 64,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Pack",
+        "weight": 375
+      }
+    ]
+  },
+  {
+    "name": "Honey",
+    "brand": "",
+    "kcal_per_100g": 304,
+    "is_ingredient": true,
+    "quantities": []
+  },
+  {
+    "name": "Italian Style Pork Sausages",
+    "brand": "Coles Finest",
+    "kcal_per_100g": 206,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Sausage",
+        "weight": 84
+      },
+      {
+        "name": "Pack",
+        "weight": 500
+      }
+    ]
+  },
+  {
+    "name": "Jam and Creme Lamington",
+    "brand": "7-11",
+    "kcal_per_100g": 352,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "Packet",
+        "weight": 125
+      }
+    ]
+  },
+  {
+    "name": "Japanese Golden Curry",
+    "brand": "S and B",
+    "kcal_per_100g": 535,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Pack",
+        "weight": 100
+      }
+    ]
+  },
+  {
+    "name": "Kalamata Olives, Pitted",
+    "brand": "",
+    "kcal_per_100g": 232,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Olive",
+        "weight": 4
+      }
+    ]
+  },
+  {
+    "name": "Kale",
+    "brand": "",
+    "kcal_per_100g": 49,
+    "is_ingredient": true,
+    "quantities": [
+      {
+        "name": "Coles Small Packet",
+        "weight": 140
+      }
+    ]
+  },
+  {
+    "name": "Kass's Keto Krackers",
+    "brand": "",
+    "kcal_per_100g": 100,
+    "is_ingredient": false,
+    "quantities": [
+      {
+        "name": "kracker",
+        "weight": 45
+      }
+    ]
+  },
+  {
+    "name": "Kidneys",
+    "brand": "",
+    "kcal_per_100g": 89,
+    "is_ingredient": true,
+    "quantities": []
+  }
+]

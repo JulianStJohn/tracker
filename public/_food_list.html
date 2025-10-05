@@ -1,0 +1,301 @@
+<div id="food-list-container">
+    <div class="food-list-header">
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="food-search-input" 
+                placeholder="Search foods..." 
+                class="search-input"
+            >
+            <select id="results-limit" class="results-limit-select">
+                <option value="10">10 results</option>
+                <option value="25">25 results</option>
+                <option value="50">50 results</option>
+                <option value="100">100 results</option>
+            </select>
+        </div>
+        <button id="add-food-btn" class="add-food-btn" onclick="window.location.href='edit_food.html?action=add'">
+            + Add Food
+        </button>
+    </div>
+    
+    <div id="food-list-results">
+        <div class="loading">Loading foods...</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let searchTimeout;
+    
+    function searchFoods() {
+        const query = $('#food-search-input').val().trim();
+        const limit = $('#results-limit').val();
+        
+        // Clear previous timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        // Show loading
+        $('#food-list-results').html('<div class="loading">Searching...</div>');
+        
+        // Debounce search
+        searchTimeout = setTimeout(() => {
+            const searchParams = new URLSearchParams();
+            if (query) {
+                searchParams.append('q', query);
+            }
+            searchParams.append('limit', limit);
+            
+            $.ajax({
+                url: `/api/food/search?${searchParams.toString()}`,
+                method: 'GET',
+                success: function(foods) {
+                    displayFoods(foods);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error searching foods:', error);
+                    $('#food-list-results').html('<div class="error">Error loading foods</div>');
+                }
+            });
+        }, 300);
+    }
+    
+    function displayFoods(foods) {
+        if (foods.length === 0) {
+            $('#food-list-results').html('<div class="no-results">No foods found</div>');
+            return;
+        }
+        
+        const foodsHtml = foods.map(food => {
+            const quantityInfo = food.quantities && food.quantities.length > 0 
+                ? food.quantities.map(q => `${q.name} (${q.weight}g)`).join(', ')
+                : 'No quantities defined';
+            
+            return `
+                <div class="food-item" data-food-id="${food._id}">
+                    <div class="food-info">
+                        <span class="food-name">${escapeHtml(food.name)}</span>
+                        <span class="food-kcal">${food.kcal_per_100g} kcal/100g</span>
+                    </div>
+                    <div class="food-actions">
+                        <button class="edit-food-btn" onclick="window.location.href='edit_food.html?action=edit&id=${food._id}'">
+                            Edit
+                        </button>
+                        <button class="select-food-btn" onclick="selectFood('${food._id}', '${escapeHtml(food.name)}')">
+                            Select
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        $('#food-list-results').html(`<div class="food-list">${foodsHtml}</div>`);
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Global function for selecting a food (can be overridden by parent page)
+    // Only define default behavior if no custom selectFood function exists
+    if (typeof window.selectFood !== 'function') {
+        window.selectFood = function(foodId, foodName) {
+            console.log('Selected food:', foodId, foodName);
+            // This is the default behavior - show alert
+            alert(`Selected: ${foodName}`);
+        };
+    }
+    
+    // Event listeners
+    $('#food-search-input').on('input', searchFoods);
+    $('#results-limit').on('change', searchFoods);
+    
+    // Initial load
+    searchFoods();
+})();
+</script>
+
+<style>
+#food-list-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.food-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.search-container {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--grey-two);
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--yellow-strongest);
+    box-shadow: 0 0 0 2px var(--yellow-faint);
+}
+
+.results-limit-select {
+    padding: 10px;
+    border: 1px solid var(--grey-two);
+    border-radius: 0.25rem;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.add-food-btn {
+    background-color: var(--yellow-strongest);
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.add-food-btn:hover {
+    background-color: var(--dark-yellow);
+}
+
+.loading, .error, .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--grey-four);
+    font-style: italic;
+}
+
+.error {
+    color: red;
+}
+
+.food-list {
+    display: grid;
+    gap: 15px;
+}
+
+.food-item {
+    border: 1px solid var(--grey-two);
+    border-radius: 0.5rem;
+    padding: 15px;
+    background: white;
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.food-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.food-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.food-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--grey-five);
+    min-width: 200px;
+}
+
+.food-kcal {
+    color: var(--grey-four);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.food-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.edit-food-btn, .select-food-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.edit-food-btn {
+    background-color: var(--grey-two);
+    color: var(--grey-five);
+}
+
+.edit-food-btn:hover {
+    background-color: var(--grey-three);
+}
+
+.select-food-btn {
+    background-color: var(--yellow-stronger);
+    color: black;
+}
+
+.select-food-btn:hover {
+    background-color: var(--yellow-strongest);
+}
+
+@media (max-width: 768px) {
+    .food-list-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .food-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .food-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .food-name {
+        min-width: auto;
+    }
+    
+    .food-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .food-actions {
+        flex-direction: column;
+    }
+}
+</style>

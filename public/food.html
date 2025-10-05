@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+    <title>Foods - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .food-item.expanded {
+            background-color: #f8f9fa;
+            border: 2px solid var(--yellow-strongest);
+        }
+
+        .quantity-selection {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid var(--yellow-strongest);
+            border-radius: 8px;
+        }
+
+        .quantity-selection h4 {
+            margin: 0 0 15px 0;
+            color: var(--grey-five);
+            font-weight: bold;
+        }
+
+        .food-base-info {
+            margin-bottom: 15px;
+        }
+
+        .food-brand {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .food-calories {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .quantity-controls-meal {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 1rem;
+        }
+
+        .quantity-fields-meal {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-multiplier-meal {
+            width: 3ch;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .quantity-selector-meal {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            min-width: 120px;
+            max-width: 180px;
+            font-size: 0.9rem;
+        }
+
+        .weight-input-meal {
+            width: 4ch;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .calculated-calories-meal {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .quantity-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-add-to-meal {
+            background-color: var(--yellow-strongest);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-add-to-meal:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        .btn-cancel {
+            background-color: var(--grey-two);
+            color: var(--grey-five);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background-color: var(--grey-three);
+        }
+
+        @media (max-width: 768px) {
+            .quantity-controls-meal {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .quantity-fields-meal {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .calculated-calories-meal {
+                text-align: left;
+            }
+            
+            .quantity-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="page-container">
+  <div id="navbar-container"></div>        <h1>Food Database</h1>
+        <p>Search and manage your food database. You can add new foods, edit existing ones, and search by name.</p>
+
+        <div id="food-list-content">
+            <!-- Food list partial will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            loadNavbar();
+
+            // Check if we're in "add to meal" mode and set up selectFood function BEFORE loading the partial
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+            const dayParam = urlParams.get('day');
+            const mealParam = urlParams.get('meal');
+            
+            if (action === 'add-to-meal' && dayParam && mealParam) {
+                // Override the selectFood function for meal addition
+                window.selectFood = function(foodId, foodName) {
+                    // This will expand the food item to show quantity selection
+                    expandFoodForQuantitySelection(foodId, foodName, dayParam, mealParam);
+                };
+            } else {
+                // Default selectFood behavior
+                window.selectFood = function(foodId, foodName) {
+                    console.log('Food selected:', foodId, foodName);
+                    alert(`You selected: ${foodName}\n\nThis could be used to add the food to a meal or view details.`);
+                };
+            }
+
+            // Load the food list partial
+            $.ajax({
+                url: '/_food_list.html',
+                method: 'GET',
+                success: function(html) {
+                    $('#food-list-content').html(html);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading food list:', error);
+                    $('#food-list-content').html(
+                        '<div style="text-align: center; padding: 40px; color: var(--grey-four);">Error loading food list</div>'
+                    );
+                }
+            });
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+                // Navbar will automatically set active tab based on current page
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+
+        function expandFoodForQuantitySelection(foodId, foodName, dayParam, mealParam) {
+            // Find the food item element
+            const foodItem = $(`.food-item[data-food-id="${foodId}"]`);
+            if (foodItem.length === 0) {
+                console.error('Food item not found');
+                return;
+            }
+
+            // Check if already expanded
+            if (foodItem.hasClass('expanded')) {
+                return;
+            }
+
+            // Fetch full food details to get quantities
+            $.ajax({
+                url: `/api/food/${foodId}`,
+                method: 'GET',
+                success: function(food) {
+                    // Store food data for calculations
+                    currentFoodData[foodId] = food;
+                    
+                    // Mark as expanded
+                    foodItem.addClass('expanded');
+                    
+                    // Hide the select button
+                    foodItem.find('.select-food-btn').hide();
+                    
+                    // Create quantity selection UI using the same layout as edit_meal.html
+                    const hasQuantities = food.quantities && food.quantities.length > 0;
+                    
+                    // Build quantity dropdown options
+                    let quantityOptions = '<option value="">Select quantity</option>';
+                    if (hasQuantities) {
+                        food.quantities.forEach(qty => {
+                            quantityOptions += `<option value="${qty.weight}">${qty.name} (${qty.weight}g)</option>`;
+                        });
+                    }
+                    
+                    const quantityHTML = `
+                        <div class="quantity-selection">
+                            <h4>Add to Meal: ${food.name}</h4>
+                            <div class="food-base-info">
+                                ${food.brand ? `<div class="food-brand">${food.brand}</div>` : ''}
+                                <div class="food-calories">${food.kcal_per_100g} kcal per 100g</div>
+                            </div>
+                            
+                            <div class="quantity-controls-meal">
+                                <div class="quantity-fields-meal">
+                                    ${hasQuantities ? `
+                                        <input type="number" 
+                                               class="quantity-multiplier-meal" 
+                                               id="quantity-${foodId}"
+                                               placeholder="Qty"
+                                               onchange="updateQuantityCalculationMeal('${foodId}')">
+                                        <select class="quantity-selector-meal" 
+                                                id="quantity-selector-${foodId}"
+                                                onchange="updateQuantityCalculationMeal('${foodId}')">
+                                            ${quantityOptions}
+                                        </select>
+                                    ` : ''}
+                                    <input type="number" 
+                                           class="weight-input-meal" 
+                                           id="weight-${foodId}"
+                                           value="100" 
+                                           min="1" 
+                                           step="1"
+                                           onchange="updateWeightCalculationMeal('${foodId}')">
+                                    <span>g</span>
+                                </div>
+                                <div class="calculated-calories-meal" id="calories-${foodId}">
+                                    ${food.kcal_per_100g} kcal
+                                </div>
+                            </div>
+                            
+                            <div class="quantity-actions">
+                                <button class="btn-add-to-meal" onclick="addFoodToMeal('${foodId}', '${foodName}', '${dayParam}', '${mealParam}')">Add to Meal</button>
+                                <button class="btn-cancel" onclick="cancelQuantitySelection('${foodId}')">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Append quantity selection to food item
+                    foodItem.append(quantityHTML);
+                    
+                    // Add click handlers for quantity options
+                    foodItem.find('.quantity-option').click(function() {
+                        // Clear other selections
+                        foodItem.find('.quantity-option').removeClass('selected');
+                        $(this).addClass('selected');
+                        // Clear custom weight
+                        foodItem.find(`#custom-weight-${foodId}`).val('');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching food details:', error);
+                    alert('Error loading food details');
+                }
+            });
+        }
+
+        function cancelQuantitySelection(foodId) {
+            const foodItem = $(`.food-item[data-food-id="${foodId}"]`);
+            foodItem.removeClass('expanded');
+            foodItem.find('.quantity-selection').remove();
+            foodItem.find('.select-food-btn').show();
+        }
+
+        // Store food data for calculations
+        let currentFoodData = {};
+
+        function updateQuantityCalculationMeal(foodId) {
+            const multiplier = parseFloat($(`#quantity-${foodId}`).val()) || null;
+            const selectedQuantityWeight = parseInt($(`#quantity-selector-${foodId}`).val()) || 0;
+            
+            if (selectedQuantityWeight > 0 && multiplier) {
+                const newWeight = Math.round(multiplier * selectedQuantityWeight);
+                $(`#weight-${foodId}`).val(newWeight);
+                updateWeightCalculationMeal(foodId);
+            }
+        }
+
+        function updateWeightCalculationMeal(foodId) {
+            const weight = parseInt($(`#weight-${foodId}`).val()) || 0;
+            if (weight <= 0) return;
+            
+            const food = currentFoodData[foodId];
+            if (food) {
+                const kcal = Math.round(food.kcal_per_100g * (weight / 100));
+                $(`#calories-${foodId}`).text(`${kcal} kcal`);
+            }
+        }
+
+        function addFoodToMeal(foodId, foodName, dayParam, mealParam) {
+            // Get weight from the input field
+            const weight = parseInt($(`#weight-${foodId}`).val()) || 0;
+            
+            if (weight <= 0) {
+                alert('Please enter a valid weight');
+                return;
+            }
+
+            // Get quantity information if available
+            const quantity = parseFloat($(`#quantity-${foodId}`).val()) || null;
+            const quantityTypeElement = $(`#quantity-selector-${foodId} option:selected`);
+            const quantityType = quantityTypeElement.length > 0 && quantityTypeElement.val() ? 
+                quantityTypeElement.text().split(' (')[0] : null;
+            
+            // Prepare data to send
+            const foodData = {
+                foodId: foodId,
+                weight: weight
+            };
+
+            // Include quantity information if available
+            if (quantity !== null) {
+                foodData.quantity = quantity;
+            }
+            if (quantityType) {
+                foodData.quantity_type = quantityType;
+            }
+            
+            // Add food to meal via API
+            $.ajax({
+                url: `/day/${dayParam}/meals/${mealParam}/foods`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(foodData),
+                success: function(result) {
+                    // Return to day view
+                    window.location.href = `day.html?yyyymmdd=${dayParam}`;
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error adding food to meal:', error);
+                    alert('Error adding food to meal: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                }
+            });
+        }
+    </script>
+</body>
+</html>

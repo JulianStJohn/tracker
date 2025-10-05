@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management - Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+        <h1>Data Management</h1>
+            
+        <div class="content-section">
+            <h2>Export Data</h2>
+            <p>Export all food data to a JSON backup file.</p>
+            <button id="export-foods-btn" class="btn btn-primary">Export Foods</button>
+            <div id="export-status" class="status-message"></div>
+        </div>
+        
+        <div class="content-section">
+            <h2>Import Data</h2>
+            <p><strong>Warning:</strong> This will replace ALL existing food data with the imported data.</p>
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+            <button id="import-foods-btn" class="btn btn-secondary">Select JSON File to Import</button>
+            <div id="import-status" class="status-message"></div>
+            <div id="import-preview" class="import-preview" style="display: none;">
+                <h3>Import Preview</h3>
+                <p id="import-summary"></p>
+                <button id="confirm-import-btn" class="btn btn-danger">Confirm Import (This will delete all existing foods)</button>
+                <button id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            loadNavbar();
+
+            let importData = null;
+
+            // Export functionality
+            $('#export-foods-btn').on('click', async function() {
+                const $btn = $(this);
+                const $status = $('#export-status');
+                
+                $btn.prop('disabled', true).text('Exporting...');
+                $status.removeClass('error success').text('');
+                
+                try {
+                    const response = await $.ajax({
+                        url: '/api/food/export',
+                        method: 'GET'
+                    });
+                    
+                    // Create filename with current date and time
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const filename = `food-backup-${year}${month}${day}_${hours}${minutes}.json`;
+                    
+                    // Create and trigger download
+                    const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    $status.addClass('success').text(`Successfully exported ${response.length} foods to ${filename}`);
+                } catch (error) {
+                    console.error('Export error:', error);
+                    $status.addClass('error').text('Error exporting foods: ' + (error.responseJSON?.error || error.message || 'Please try again.'));
+                } finally {
+                    $btn.prop('disabled', false).text('Export Foods');
+                }
+            });
+
+            // Import file selection
+            $('#import-foods-btn').on('click', function() {
+                $('#import-file-input').click();
+            });
+
+            $('#import-file-input').on('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const $status = $('#import-status');
+                $status.removeClass('error success').text('Reading file...');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        importData = JSON.parse(e.target.result);
+                        
+                        if (!Array.isArray(importData)) {
+                            throw new Error('File must contain an array of food items');
+                        }
+
+                        // Validate the data structure
+                        if (importData.length === 0) {
+                            throw new Error('File contains no food items');
+                        }
+
+                        // Check first item for required fields
+                        const firstItem = importData[0];
+                        const requiredFields = ['name', 'kcal_per_100g'];
+                        for (const field of requiredFields) {
+                            if (!(field in firstItem)) {
+                                throw new Error(`Missing required field: ${field}`);
+                            }
+                        }
+
+                        // Show preview
+                        $('#import-summary').text(`Ready to import ${importData.length} food items. This will replace all existing foods.`);
+                        $('#import-preview').show();
+                        $status.addClass('success').text('File loaded successfully. Review the preview below.');
+                        
+                    } catch (error) {
+                        $status.addClass('error').text('Error reading file: ' + error.message);
+                        $('#import-preview').hide();
+                        importData = null;
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            // Confirm import
+            $('#confirm-import-btn').on('click', async function() {
+                if (!importData) return;
+
+                const $btn = $(this);
+                const $status = $('#import-status');
+                
+                $btn.prop('disabled', true).text('Importing...');
+                $('#cancel-import-btn').prop('disabled', true);
+                $status.removeClass('error success').text('Importing foods...');
+                
+                try {
+                    const response = await $.ajax({
+                        url: '/api/food/import',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ foods: importData })
+                    });
+                    
+                    $status.addClass('success').text(`Successfully imported ${response.imported} foods. ${response.replaced} existing foods were replaced.`);
+                    $('#import-preview').hide();
+                    $('#import-file-input').val('');
+                    importData = null;
+                    
+                } catch (error) {
+                    console.error('Import error:', error);
+                    $status.addClass('error').text('Error importing foods: ' + (error.responseJSON?.error || error.message || 'Please try again.'));
+                } finally {
+                    $btn.prop('disabled', false).text('Confirm Import (This will delete all existing foods)');
+                    $('#cancel-import-btn').prop('disabled', false);
+                }
+            });
+
+            // Cancel import
+            $('#cancel-import-btn').on('click', function() {
+                $('#import-preview').hide();
+                $('#import-file-input').val('');
+                $('#import-status').removeClass('error success').text('');
+                importData = null;
+            });
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+                // Navbar will automatically set active tab based on current page
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+    </script>
+
+    <style>
+        .content-section {
+            background-color: #f8f9fa;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .content-section h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .content-section p {
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            display: block;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .import-preview {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+        }
+
+        .import-preview h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .import-preview p {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .import-preview .btn {
+            margin-right: 0.5rem;
+        }
+    </style>
+    </div>
+</body>
+</html>

@@ -1,6 +1,88 @@
 <div id="navbar">
       <div class="navbar-title">Tracker</div>
-      <button class="navbar-tab active" id="tab-day" data-location="index.html" type="button" role="tab" aria-selected="true">Day</button>
+      <button class="navbar-tab" id="tab-day" data-location="day.html" type="button" role="tab">Day</button>
+      <button class="navbar-tab" id="tab-foods" data-location="food.html" type="button" role="tab">Foods</button>
+      <button class="navbar-tab" id="tab-meals" data-location="meals.html" type="button" role="tab">Meals</button>
+      <button class="navbar-tab" id="tab-data" data-location="data.html" type="button" role="tab">Data</button>
     <div class="navbar-spacer">&nbsp;</div>
       <button class="navbar-link" id="logout" type="button">Logout</button> 
 </div>
+
+<script>
+// Navbar functionality - runs when navbar is loaded
+(function() {
+    // Page mapping for highlighting active tab
+    const pageMapping = {
+        'day.html': 'tab-day',
+        'index.html': 'tab-day', // Legacy support
+        '/': 'tab-day',
+        'food.html': 'tab-foods',
+        'edit_food.html': 'tab-foods',
+        'meals.html': 'tab-meals',
+        'edit_meal.html': 'tab-meals',
+        'data.html': 'tab-data'
+    };
+
+    function setActiveTab() {
+        // Get current page from URL
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.split('/').pop() || 'day.html';
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.navbar-tab').forEach(tab => {
+            tab.classList.remove('active');
+            tab.setAttribute('aria-selected', 'false');
+        });
+
+        // Find and activate the correct tab
+        const activeTabId = pageMapping[currentPage] || pageMapping[currentPath];
+        if (activeTabId) {
+            const activeTab = document.getElementById(activeTabId);
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.setAttribute('aria-selected', 'true');
+            }
+        }
+    }
+
+    // Set up click handlers for navigation tabs
+    function setupNavigation() {
+        document.querySelectorAll('.navbar-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const location = this.getAttribute('data-location');
+                if (location) {
+                    window.location.href = '/' + location;
+                }
+            });
+        });
+
+        // Setup logout handler
+        const logoutBtn = document.getElementById('logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                // Clear any stored auth data
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                // Redirect to logout or login page
+                window.location.href = '/auth/logout';
+            });
+        }
+    }
+
+    // Initialize navbar when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setActiveTab();
+            setupNavigation();
+        });
+    } else {
+        setActiveTab();
+        setupNavigation();
+    }
+
+    // Expose function globally for manual activation if needed
+    window.setActiveNavTab = setActiveTab;
+})();
+</script>

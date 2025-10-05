@@ -14,6 +14,8 @@ import { MongoStore } from "./mongo.js"
 import *  as auth from "./auth.js"
 import * as cors from "./cors.js"
 import { makeDayRouter } from "./day.js"
+import { makeFoodRouter } from "./food.js"
+import { makeMealRouter } from "./meals.js"
 import * as fs from 'fs'
 
 let openid_client_config: oc.Configuration;
@@ -49,11 +51,17 @@ app.get("/ping", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.redirect("/index.html");
+  res.redirect("/day.html");
 });
 
 // Add day routes
 app.use("/day", makeDayRouter(mongo));
+
+// Add food routes
+app.use("/api/food", makeFoodRouter(mongo));
+
+// Add meal routes
+app.use("/api/meals", makeMealRouter(mongo));
 
 // Serve static UI
 app.use(express.static(path.join(process.cwd(), "public")));

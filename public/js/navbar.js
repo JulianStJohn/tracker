@@ -10,11 +10,32 @@ export function addNavBar(){
 export function renderNavBar(){
     console.log('navbar js loaded');
 
-    // Set up click handlers
+    // Set up click handlers for all tabs
     const dayTab = document.getElementById('tab-day');
     if (dayTab) {
       dayTab.addEventListener('click', function() {
         window.location.href = '/';
+      });
+    }
+
+    const foodsTab = document.getElementById('tab-foods');
+    if (foodsTab) {
+      foodsTab.addEventListener('click', function() {
+        window.location.href = '/food.html';
+      });
+    }
+
+    const mealsTab = document.getElementById('tab-meals');
+    if (mealsTab) {
+      mealsTab.addEventListener('click', function() {
+        window.location.href = '/meals.html';
+      });
+    }
+
+    const dataTab = document.getElementById('tab-data');
+    if (dataTab) {
+      dataTab.addEventListener('click', function() {
+        window.location.href = '/data.html';
       });
     }
 

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Meal - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+        <div class="header-section">
+            <h1 id="pageTitle">Create New Meal</h1>
+            <div class="header-actions">
+                <a href="/meals.html" class="btn btn-outline">Back to Meals</a>
+            </div>
+        </div>
+
+        <form id="mealForm" class="meal-form">
+            <!-- Meal basic info -->
+            <div class="form-section">
+                <h2>Meal Information</h2>
+                <div id="editModeIndicator" class="edit-mode-indicator" style="display: none;">
+                    <p><strong>Editing existing meal</strong> - Make your changes below</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mealName">Meal Name *</label>
+                    <input type="text" id="mealName" required class="form-control" placeholder="Enter meal name">
+                </div>
+            </div>
+
+            <!-- Food selection -->
+            <div class="form-section">
+                <h2>Foods</h2>
+                <p class="section-description">Add foods to your meal. Search and select foods, then specify the weight for each.</p>
+                
+                <div class="add-food-section">
+                    <div class="food-search-group">
+                        <input type="text" id="foodSearch" placeholder="Search for food..." class="form-control">
+                        <button type="button" id="searchFoodBtn" class="btn btn-secondary">Search</button>
+                    </div>
+                    
+                    <div id="foodSearchResults" class="food-search-results" style="display: none;">
+                        <!-- Search results will be displayed here -->
+                    </div>
+                </div>
+
+                <div id="selectedFoods" class="selected-foods">
+                    <h3>Selected Foods</h3>
+                    <div id="selectedFoodsList" class="selected-foods-list">
+                        <p class="empty-message">No foods selected yet. Search and add foods above.</p>
+                    </div>
+                </div>
+
+                <!-- Total calories display -->
+                <div class="total-calories">
+                    <h3>Total Calories: <span id="totalCalories">0</span> kcal</h3>
+                </div>
+            </div>
+
+            <!-- Form actions -->
+            <div class="form-actions">
+                <button type="button" id="cancelBtn" class="btn btn-outline">Cancel</button>
+                <button type="button" id="debugBtn" class="btn btn-secondary" onclick="console.log('Current selectedFoods:', selectedFoods)">Debug</button>
+                <button type="submit" id="submitBtn" class="btn btn-primary">Create Meal</button>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .meal-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-section h2 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .section-description {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .food-search-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .food-search-group .form-control {
+            flex: 1;
+        }
+
+        .food-search-results {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .food-result-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .food-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .food-result-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .food-result-brand {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .food-result-details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .selected-foods {
+            margin-top: 2rem;
+        }
+
+        .selected-foods h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .empty-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .selected-food-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+        }
+
+        .selected-food-info {
+            flex: 1;
+        }
+
+        .selected-food-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .selected-food-brand {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .selected-food-base-calories {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            margin: 0 1rem;
+        }
+
+        .quantity-fields {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-multiplier {
+            width: 2ch;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .quantity-selector {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            min-width: 120px;
+            max-width: 180px;
+            font-size: 0.9rem;
+        }
+
+        .weight-input {
+            width: 4ch;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .calculated-calories {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .remove-food-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .remove-food-btn:hover {
+            background: #c82333;
+        }
+
+        .total-calories {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .total-calories h3 {
+            margin: 0;
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 2rem 0;
+        }
+
+        .edit-mode-indicator {
+            background: #e8f4f8;
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #0c5460;
+        }
+
+        .edit-mode-indicator p {
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .header-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .food-search-group {
+                flex-direction: column;
+            }
+
+            .selected-food-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .quantity-controls {
+                margin: 0;
+            }
+
+            .quantity-fields {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        let selectedFoods = [];
+        let editingMealId = null;
+
+        $(document).ready(function() {
+            loadNavbar();
+            
+            // Check if we're editing an existing meal or a day meal
+            const urlParams = new URLSearchParams(window.location.search);
+            editingMealId = urlParams.get('edit');
+            const dayParam = urlParams.get('day');
+            const mealParam = urlParams.get('meal');
+            
+            if (editingMealId) {
+                $('#pageTitle').text('Edit Meal');
+                $('#submitBtn').text('Update Meal');
+                $('#editModeIndicator').show();
+                loadMealForEditing(editingMealId);
+            } else if (dayParam && mealParam !== null) {
+                $('#pageTitle').text('Edit Day Meal');
+                $('#submitBtn').text('Save to Day');
+                $('#editModeIndicator').show().find('p').html('<strong>Editing day meal</strong> - Changes will be saved to your day');
+                $('.header-actions').html(`<a href="/day.html?yyyymmdd=${dayParam}" class="btn btn-outline">Back to Day</a>`);
+                window.editingDayMeal = { day: dayParam, meal: parseInt(mealParam) };
+                loadDayMealForEditing(dayParam, parseInt(mealParam));
+            } else {
+                $('#pageTitle').text('Create New Meal');
+                $('#submitBtn').text('Create Meal');
+                $('#editModeIndicator').hide();
+            }
+
+            // Food search functionality
+            $('#searchFoodBtn').click(searchFoods);
+            $('#foodSearch').keypress(function(e) {
+                if (e.which === 13) {
+                    searchFoods();
+                }
+            });
+
+            // Form submission
+            $('#mealForm').submit(function(e) {
+                e.preventDefault();
+                saveMeal();
+            });
+
+            // Cancel button
+            $('#cancelBtn').click(function() {
+                window.location.href = '/meals.html';
+            });
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+                // Navbar will automatically set active tab based on current page
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+
+        function loadMealForEditing(mealId) {
+            $.get(`/api/meals/${mealId}`)
+                .done(function(meal) {
+                    $('#mealName').val(meal.name);
+                    
+                    // For editing, we need to look up the original food data to get quantities
+                    // We'll try to find the original foods to get quantity information
+                    const foodPromises = meal.foods.map(mealFood => {
+                        // Try to find the original food by name to get quantities
+                        return $.get(`/api/food/search?q=${encodeURIComponent(mealFood.title)}&limit=1`)
+                            .then(foods => {
+                                const matchedFood = foods.find(f => f.name === mealFood.title);
+                                return {
+                                    _id: matchedFood ? matchedFood._id : null,
+                                    title: mealFood.title,
+                                    brand: matchedFood ? (matchedFood.brand || '') : '',
+                                    kcal_per_100g: matchedFood ? matchedFood.kcal_per_100g : Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    quantities: matchedFood ? (matchedFood.quantities || []) : [],
+                                    weight: mealFood.weight,
+                                    kcal: mealFood.kcal,
+                                    quantity: mealFood.quantity || null,
+                                    quantity_type: mealFood.quantity_type || null
+                                };
+                            })
+                            .catch(() => {
+                                // If search fails, use calculated values
+                                return {
+                                    _id: null,
+                                    title: mealFood.title,
+                                    brand: '',
+                                    kcal_per_100g: Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    quantities: [],
+                                    weight: mealFood.weight,
+                                    kcal: mealFood.kcal,
+                                    quantity: mealFood.quantity || null,
+                                    quantity_type: mealFood.quantity_type || null
+                                };
+                            });
+                    });
+                    
+                    Promise.all(foodPromises)
+                        .then(foods => {
+                            selectedFoods = foods;
+                            updateSelectedFoodsDisplay();
+                        })
+                        .catch(error => {
+                            console.error('Error loading food details:', error);
+                            // Fallback to basic data
+                            selectedFoods = meal.foods.map(food => ({
+                                _id: null,
+                                title: food.title,
+                                brand: '',
+                                kcal_per_100g: Math.round(food.kcal / (food.weight / 100)),
+                                quantities: [],
+                                weight: food.weight,
+                                kcal: food.kcal,
+                                quantity: food.quantity || null,
+                                quantity_type: food.quantity_type || null
+                            }));
+                            updateSelectedFoodsDisplay();
+                        });
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading meal:', xhr.responseText);
+                    alert('Error loading meal: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                    window.location.href = '/meals.html';
+                });
+        }
+
+        function loadDayMealForEditing(dayParam, mealIndex) {
+            $.get(`/day/${dayParam}`)
+                .done(function(day) {
+                    if (!day.meals || mealIndex >= day.meals.length) {
+                        alert('Meal not found in day');
+                        window.location.href = `/day.html?yyyymmdd=${dayParam}`;
+                        return;
+                    }
+                    
+                    const dayMeal = day.meals[mealIndex];
+                    $('#mealName').val(dayMeal.title);
+                    
+                    // Convert day meal foods to the format expected by the editor
+                    const foodPromises = dayMeal.foods.map(mealFood => {
+                        // Try to find the original food by name to get quantities
+                        return $.get(`/api/food/search?q=${encodeURIComponent(mealFood.title)}&limit=1`)
+                            .then(foods => {
+                                const matchedFood = foods.find(f => f.name === mealFood.title);
+                                return {
+                                    _id: matchedFood ? matchedFood._id : null,
+                                    title: mealFood.title,
+                                    brand: mealFood.brand || (matchedFood ? (matchedFood.brand || '') : ''),
+                                    kcal_per_100g: matchedFood ? matchedFood.kcal_per_100g : Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    quantities: matchedFood ? (matchedFood.quantities || []) : [],
+                                    weight: mealFood.weight,
+                                    kcal: mealFood.kcal,
+                                    quantity: mealFood.quantity || null,
+                                    quantity_type: mealFood.quantity_type || null
+                                };
+                            })
+                            .catch(() => {
+                                // If search fails, use calculated values
+                                return {
+                                    _id: null,
+                                    title: mealFood.title,
+                                    brand: mealFood.brand || '',
+                                    kcal_per_100g: Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    quantities: [],
+                                    weight: mealFood.weight,
+                                    kcal: mealFood.kcal,
+                                    quantity: mealFood.quantity || null,
+                                    quantity_type: mealFood.quantity_type || null
+                                };
+                            });
+                    });
+                    
+                    Promise.all(foodPromises)
+                        .then(foods => {
+                            selectedFoods = foods;
+                            updateSelectedFoodsDisplay();
+                        })
+                        .catch(error => {
+                            console.error('Error loading food details:', error);
+                            // Fallback to basic data
+                            selectedFoods = dayMeal.foods.map(food => ({
+                                _id: null,
+                                title: food.title,
+                                brand: food.brand || '',
+                                kcal_per_100g: Math.round(food.kcal / (food.weight / 100)),
+                                quantities: [],
+                                weight: food.weight,
+                                kcal: food.kcal,
+                                quantity: food.quantity || null,
+                                quantity_type: food.quantity_type || null
+                            }));
+                            updateSelectedFoodsDisplay();
+                        });
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading day:', xhr.responseText);
+                    alert('Error loading day: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                    window.location.href = `/day.html?yyyymmdd=${dayParam}`;
+                });
+        }
+
+        function searchFoods() {
+            const query = $('#foodSearch').val().trim();
+            if (!query) {
+                $('#foodSearchResults').hide();
+                return;
+            }
+
+            $.get(`/api/food/search?q=${encodeURIComponent(query)}&limit=10`)
+                .done(function(foods) {
+                    displayFoodSearchResults(foods);
+                })
+                .fail(function(xhr) {
+                    console.error('Error searching foods:', xhr.responseText);
+                    alert('Error searching foods: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                });
+        }
+
+        function displayFoodSearchResults(foods) {
+            const resultsContainer = $('#foodSearchResults');
+            
+            if (foods.length === 0) {
+                resultsContainer.html('<div class="food-result-item">No foods found</div>');
+            } else {
+                let html = '';
+                foods.forEach(food => {
+                    html += `
+                        <div class="food-result-item" onclick="selectFood('${food._id}')">
+                            <div class="food-result-name">${escapeHtml(food.name)}</div>
+                            ${food.brand ? `<div class="food-result-brand">${escapeHtml(food.brand)}</div>` : ''}
+                            <div class="food-result-details">${food.kcal_per_100g} kcal per 100g</div>
+                        </div>
+                    `;
+                });
+                resultsContainer.html(html);
+            }
+            
+            resultsContainer.show();
+        }
+
+        function selectFood(foodId) {
+            // Get the food details and add to selected foods
+            $.get(`/api/food/${foodId}`)
+                .done(function(food) {
+                    // Check if food is already selected
+                    if (selectedFoods.some(f => f._id === food._id)) {
+                        alert('This food is already added to the meal.');
+                        return;
+                    }
+
+                    // Add to selected foods with default weight
+                    selectedFoods.push({
+                        _id: food._id,
+                        title: food.name,
+                        brand: food.brand || '',
+                        kcal_per_100g: food.kcal_per_100g,
+                        quantities: food.quantities || [], // Include quantities from food
+                        weight: 100, // Default weight
+                        kcal: Math.round(food.kcal_per_100g * 1), // 100g = 1 * 100g
+                        quantity: null, // No quantity multiplier initially
+                        quantity_type: null // No quantity type initially
+                    });
+
+                    updateSelectedFoodsDisplay();
+                    $('#foodSearchResults').hide();
+                    $('#foodSearch').val('');
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading food details:', xhr.responseText);
+                    alert('Error loading food: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                });
+        }
+
+        function updateSelectedFoodsDisplay() {
+            const container = $('#selectedFoodsList');
+            
+            if (selectedFoods.length === 0) {
+                container.html('<p class="empty-message">No foods selected yet. Search and add foods above.</p>');
+            } else {
+                let html = '';
+                selectedFoods.forEach((food, index) => {
+                    // Check if food has quantities or has saved quantity information
+                    const hasQuantities = food.quantities && food.quantities.length > 0;
+                    const hasSavedQuantity = food.quantity || food.quantity_type;
+                    const showQuantityControls = hasQuantities || hasSavedQuantity;
+                    
+                    // Build quantity dropdown options
+                    let quantityOptions = '<option value="">Select quantity</option>';
+                    if (hasQuantities) {
+                        food.quantities.forEach(qty => {
+                            const selected = food.quantity_type === qty.name ? 'selected' : '';
+                            quantityOptions += `<option value="${qty.weight}" ${selected}>${escapeHtml(qty.name)} (${qty.weight}g)</option>`;
+                        });
+                    } else if (food.quantity_type) {
+                        // If we have a saved quantity type but no predefined quantities, show it as a custom option
+                        quantityOptions += `<option value="" selected>${escapeHtml(food.quantity_type)} (custom)</option>`;
+                    }
+                    
+                    html += `
+                        <div class="selected-food-item">
+                            <div class="selected-food-info">
+                                <div class="selected-food-name">${escapeHtml(food.title)}</div>
+                                ${food.brand ? `<div class="selected-food-brand">${escapeHtml(food.brand)}</div>` : ''}
+                                <div class="selected-food-base-calories">${food.kcal_per_100g} kcal per 100g</div>
+                            </div>
+                            
+                            <div class="quantity-controls">
+                                <div class="quantity-fields">
+                                    ${showQuantityControls ? `
+                                        <input type="number" 
+                                               class="quantity-multiplier" 
+                                               value="${food.quantity || ''}"
+                                               placeholder="Qty"
+                                               onchange="updateQuantityCalculation(${index})">
+                                        <select class="quantity-selector" onchange="updateQuantityCalculation(${index})">
+                                            ${quantityOptions}
+                                        </select>
+                                    ` : ''}
+                                    <input type="number" 
+                                           class="weight-input" 
+                                           value="${food.weight}" 
+                                           min="1" 
+                                           step="1"
+                                           onchange="updateFoodWeight(${index}, this.value)">
+                                    <span>g</span>
+                                </div>
+                            </div>
+                            
+                            <div class="calculated-calories">${food.kcal} kcal</div>
+                            
+                            <button type="button" class="remove-food-btn" onclick="removeFood(${index})">×</button>
+                        </div>
+                    `;
+                });
+                container.html(html);
+            }
+            
+            updateTotalCalories();
+        }
+
+        function updateQuantityCalculation(index) {
+            const foodItem = $('.selected-food-item').eq(index);
+            const multiplier = parseFloat(foodItem.find('.quantity-multiplier').val()) || null;
+            const selectedQuantityOption = foodItem.find('.quantity-selector option:selected');
+            const selectedQuantityWeight = parseInt(foodItem.find('.quantity-selector').val()) || 0;
+            
+            // Always store the multiplier value (even if no quantity type is selected)
+            selectedFoods[index].quantity = multiplier;
+            
+            if (selectedQuantityWeight > 0 && multiplier) {
+                // Find the quantity type name from the food's quantities array
+                const matchingQuantity = selectedFoods[index].quantities.find(q => q.weight === selectedQuantityWeight);
+                const quantityTypeName = matchingQuantity ? matchingQuantity.name : selectedQuantityOption.text().split(' (')[0];
+                selectedFoods[index].quantity_type = quantityTypeName;
+                
+                const newWeight = Math.round(multiplier * selectedQuantityWeight);
+                selectedFoods[index].weight = newWeight;
+                selectedFoods[index].kcal = Math.round(selectedFoods[index].kcal_per_100g * (newWeight / 100));
+                
+                // Update the weight input to reflect the calculated weight
+                foodItem.find('.weight-input').val(newWeight);
+                
+                updateSelectedFoodsDisplay();
+            } else {
+                // Clear quantity type if no valid quantity is selected
+                selectedFoods[index].quantity_type = null;
+                
+                // If only multiplier is entered without selecting a quantity type, 
+                // we still store the multiplier but don't auto-calculate weight
+                if (!multiplier) {
+                    selectedFoods[index].quantity = null;
+                }
+            }
+        }
+
+        function updateFoodWeight(index, newWeight) {
+            const weight = parseInt(newWeight) || 0;
+            if (weight <= 0) return;
+            
+            selectedFoods[index].weight = weight;
+            selectedFoods[index].kcal = Math.round(selectedFoods[index].kcal_per_100g * (weight / 100));
+            
+            // Clear quantity information when weight is manually changed
+            // (unless it matches the current quantity calculation)
+            const currentQuantity = selectedFoods[index].quantity;
+            const currentQuantityType = selectedFoods[index].quantity_type;
+            if (currentQuantity && currentQuantityType) {
+                const matchingQty = selectedFoods[index].quantities.find(q => q.name === currentQuantityType);
+                if (matchingQty) {
+                    const expectedWeight = Math.round(currentQuantity * matchingQty.weight);
+                    if (weight !== expectedWeight) {
+                        selectedFoods[index].quantity = null;
+                        selectedFoods[index].quantity_type = null;
+                    }
+                }
+            }
+            
+            updateSelectedFoodsDisplay();
+        }
+
+        function removeFood(index) {
+            selectedFoods.splice(index, 1);
+            updateSelectedFoodsDisplay();
+        }
+
+        function updateTotalCalories() {
+            const total = selectedFoods.reduce((sum, food) => sum + food.kcal, 0);
+            $('#totalCalories').text(total);
+        }
+
+        function saveMeal() {
+            const mealName = $('#mealName').val().trim();
+            
+            if (!mealName) {
+                alert('Please enter a meal name.');
+                return;
+            }
+
+            if (selectedFoods.length === 0) {
+                alert('Please add at least one food to the meal.');
+                return;
+            }
+
+            // Check if we're editing a day meal
+            if (window.editingDayMeal) {
+                saveDayMeal(mealName);
+                return;
+            }
+
+            const mealData = {
+                name: mealName,
+                foods: selectedFoods.map(food => {
+                    console.log('Processing food for save:', food);
+                    const foodItem = {
+                        title: food.title,
+                        kcal: food.kcal,
+                        weight: food.weight
+                    };
+                    
+                    // Include brand if available
+                    if (food.brand) {
+                        foodItem.brand = food.brand;
+                    }
+                    
+                    // Include quantity information if available
+                    if (food.quantity !== null && food.quantity !== undefined) {
+                        foodItem.quantity = food.quantity;
+                        console.log('Added quantity:', food.quantity);
+                    }
+                    if (food.quantity_type) {
+                        foodItem.quantity_type = food.quantity_type;
+                        console.log('Added quantity_type:', food.quantity_type);
+                    }
+                    
+                    return foodItem;
+                })
+            };
+
+            console.log('Saving meal:', mealData);
+
+            const url = editingMealId ? `/api/meals/${editingMealId}` : '/api/meals';
+            const method = editingMealId ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(mealData),
+                success: function(response) {
+                    console.log('Meal saved successfully:', response);
+                    const action = editingMealId ? 'updated' : 'created';
+                    // Could show a success message here before redirecting
+                    window.location.href = '/meals.html';
+                },
+                error: function(xhr) {
+                    console.error('Error saving meal:', xhr.responseText);
+                    const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
+                    alert('Error saving meal: ' + errorMsg);
+                }
+            });
+        }
+
+        function saveDayMeal(mealName) {
+            const dayParam = window.editingDayMeal.day;
+            const mealIndex = window.editingDayMeal.meal;
+            
+            console.log(`Saving day meal ${mealIndex} for day ${dayParam}`);
+
+            // First get the current day to preserve other meals
+            $.get(`/day/${dayParam}`)
+                .done(function(day) {
+                    // Update the specific meal
+                    const updatedMeal = {
+                        title: mealName.toLowerCase(),
+                        foods: selectedFoods.map(food => {
+                            const foodItem = {
+                                title: food.title,
+                                kcal: food.kcal,
+                                weight: food.weight
+                            };
+                            
+                            // Include brand if available
+                            if (food.brand) {
+                                foodItem.brand = food.brand;
+                            }
+                            
+                            // Include quantity information if available
+                            if (food.quantity !== null && food.quantity !== undefined) {
+                                foodItem.quantity = food.quantity;
+                            }
+                            if (food.quantity_type) {
+                                foodItem.quantity_type = food.quantity_type;
+                            }
+                            
+                            return foodItem;
+                        })
+                    };
+
+                    // Update the meals array
+                    const updatedMeals = [...day.meals];
+                    updatedMeals[mealIndex] = updatedMeal;
+
+                    // Save back to the day
+                    $.ajax({
+                        url: `/day/${dayParam}`,
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ meals: updatedMeals }),
+                        success: function(response) {
+                            console.log('Day meal saved successfully:', response);
+                            window.location.href = `/day.html?yyyymmdd=${dayParam}`;
+                        },
+                        error: function(xhr) {
+                            console.error('Error saving day meal:', xhr.responseText);
+                            const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
+                            alert('Error saving day meal: ' + errorMsg);
+                        }
+                    });
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading day for update:', xhr.responseText);
+                    alert('Error loading day: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    </div>
+</body>
+</html>

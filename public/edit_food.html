@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+    <title>Edit Food - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+      .quantity-name {
+        max-width: 200px;
+      }
+      .quantity-weight {
+        max-width: 100px;
+      }
+      .quantity-kcal {
+        max-width: 100px;
+      }
+    </style>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+
+        <h1 id="page-title">Add New Food</h1>
+        
+        <div class="form-container">
+            <form id="food-form">
+                <div class="form-group">
+                    <label for="food-name">Food Name *</label>
+                    <input type="text" id="food-name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="food-brand">Brand</label>
+                    <input type="text" id="food-brand" name="brand" placeholder="Optional brand name">
+                </div>
+
+                <div class="form-group">
+                    <label for="kcal-per-100g">Calories per 100g *</label>
+                    <div class="calories-input-container">
+                        <input type="number" id="kcal-per-100g" name="kcal_per_100g" min="0" required>
+                        <select id="main-calories-unit" class="calories-unit-select">
+                            <option value="kcal">kCal</option>
+                            <option value="kj">kJ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="is-ingredient" name="is_ingredient">
+                       Ingredient 
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity Options</label>
+                    <div id="quantities-container">
+                        <div class="quantity-row">
+                            <select class="quantity-name">
+                                <option value="">Select quantity type...</option>
+                                <option value="custom">custom</option>
+                                <option value="portion">portion</option>
+                                <option value="tsp">tsp</option>
+                                <option value="tbsp">tbsp</option>
+                                <option value="cup">cup</option>
+                            </select>
+                            <input type="number" placeholder="Weight (g)" class="quantity-weight" min="0">
+                            <div class="calories-input-group">
+                                <input type="number" placeholder="kJ/kCal" class="quantity-kcal" min="0">
+                                <select class="quantity-calories-unit">
+                                    <option value="kcal">kCal</option>
+                                    <option value="kj">kJ</option>
+                                </select>
+                            </div>
+                            <button type="button" class="remove-quantity-btn">-</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-quantity-btn">Add Quantity</button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-btn">Cancel</button>
+                    <button type="submit" id="save-btn">Save Food</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            loadNavbar();
+            
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action') || 'add';
+            const foodId = urlParams.get('id');
+
+            // Update page title based on action
+            if (action === 'edit') {
+                $('#page-title').text('Edit Food');
+            }
+
+            // Quantity management
+            let quantityCounter = 1;
+
+            function addQuantityRow(name = '', weight = '', kcal = '') {
+                const $container = $('#quantities-container');
+                const $row = $('<div>').addClass('quantity-row');
+                
+                // Check if this is a custom quantity (not in predefined list)
+                const predefinedOptions = ['portion', 'tsp', 'tbsp', 'cup'];
+                const isCustom = name && !predefinedOptions.includes(name);
+                
+                $row.html(`
+                    <select class="quantity-name">
+                        <option value="">Select quantity type...</option>
+                        <option value="portion" ${name === 'portion' ? 'selected' : ''}>portion</option>
+                        <option value="tsp" ${name === 'tsp' ? 'selected' : ''}>tsp</option>
+                        <option value="tbsp" ${name === 'tbsp' ? 'selected' : ''}>tbsp</option>
+                        <option value="cup" ${name === 'cup' ? 'selected' : ''}>cup</option>
+                        <option value="custom" ${isCustom ? 'selected' : ''}>custom</option>
+                    </select>
+                    <input type="number" placeholder="Weight in grams" class="quantity-weight" min="0" value="${weight}">
+                    <div class="calories-input-group">
+                        <input type="number" placeholder="Calories (optional)" class="quantity-kcal" min="0" value="${kcal}">
+                        <select class="quantity-calories-unit">
+                            <option value="kcal">kcal</option>
+                            <option value="kj">kJ</option>
+                        </select>
+                    </div>
+                    <button type="button" class="remove-quantity-btn">Remove</button>
+                `);
+                
+                const $select = $row.find('.quantity-name');
+                
+                // If it's a custom value, convert to text input and set the value
+                if (isCustom) {
+                    convertToTextInput($select[0], name);
+                }
+                
+                // Add change event listener for custom option
+                $select.on('change', function() {
+                    if ($(this).val() === 'custom') {
+                        convertToTextInput(this);
+                    }
+                });
+                
+                // Add remove functionality
+                $row.find('.remove-quantity-btn').on('click', function() {
+                    $row.remove();
+                });
+                
+                $container.append($row);
+                quantityCounter++;
+            }
+
+            function convertToTextInput(selectElement, customValue = '') {
+                const $textInput = $('<input>')
+                    .attr('type', 'text')
+                    .addClass('quantity-name')
+                    .attr('placeholder', 'Enter custom quantity...')
+                    .val(customValue);
+                
+                // Replace the select with text input
+                $(selectElement).replaceWith($textInput);
+                $textInput.focus();
+            }
+
+            function convertToSelect(textInput) {
+                const textInputValue = $(textInput).val()
+                const $select = $('<select>')
+                    .addClass('quantity-name')
+                    .html(`
+                        <option value="${textInputValue}">${textInputValue}</option>
+                        <option value="portion">portion</option>
+                        <option value="tsp">tsp</option>
+                        <option value="tbsp">tbsp</option>
+                        <option value="cup">cup</option>
+                        <option value="custom">custom</option>
+                    `);
+                
+                // Add change event listener
+                $select.on('change', function() {
+                    if ($(this).val() === 'custom') {
+                        convertToTextInput(this);
+                    }
+                });
+                
+                // Replace the text input with select
+                $(textInput).replaceWith($select);
+                return $select[0];
+            }
+
+            // Add quantity button
+            $('#add-quantity-btn').on('click', function() {
+                // Before adding new row, check if any existing rows have kcal values to calculate calories per 100g
+                calculateCaloriesFromQuantities();
+                
+                addQuantityRow();
+                
+                // Convert any text inputs back to selects after adding
+                $('.quantity-name[type="text"]').each(function() {
+                    if ($(this).val().trim()) {
+                        // Keep the custom value but convert back to select for consistency
+                        convertToSelect(this);
+                    }
+                });
+            });
+
+            function calculateCaloriesFromQuantities() {
+                const $kcalPer100gField = $('#kcal-per-100g');
+                const $mainCaloriesUnit = $('#main-calories-unit');
+                
+                // Find the first quantity row that has both weight and kcal filled
+                $('.quantity-row').each(function() {
+                    const weight = parseFloat($(this).find('.quantity-weight').val());
+                    const caloriesValue = parseFloat($(this).find('.quantity-kcal').val());
+                    const caloriesUnit = $(this).find('.quantity-calories-unit').val();
+                    
+                    if (weight > 0 && caloriesValue > 0) {
+                        // Convert kJ to kcal if needed (1 kcal = 4.184 kJ)
+                        let kcalValue = caloriesValue;
+                        if (caloriesUnit === 'kj') {
+                            kcalValue = caloriesValue / 4.184;
+                        }
+                        
+                        // Calculate calories per 100g: (kcal / weight) * 100
+                        let caloriesPer100g = (kcalValue / weight) * 100;
+                        
+                        // Convert to kJ if main field is set to kJ
+                        if ($mainCaloriesUnit.val() === 'kj') {
+                            caloriesPer100g = caloriesPer100g * 4.184;
+                        }
+                        
+                        $kcalPer100gField.val(Math.round(caloriesPer100g));
+                        
+                        // Show a brief visual feedback
+                        $kcalPer100gField.css('background-color', 'var(--yellow-faint)');
+                        setTimeout(() => {
+                            $kcalPer100gField.css('background-color', '');
+                        }, 1000);
+                        
+                        return false; // Break out of each loop
+                    }
+                });
+            }
+
+            // Remove functionality for initial row
+            $('.remove-quantity-btn').first().on('click', function() {
+                $(this).parent().remove();
+            });
+
+            // Add change event listener for initial row
+            $('.quantity-name').first().on('change', function() {
+                if ($(this).val() === 'custom') {
+                    convertToTextInput(this);
+                }
+            });
+
+            // Add event listener for main calories unit conversion
+            $('#main-calories-unit').on('change', function() {
+                const $caloriesField = $('#kcal-per-100g');
+                const currentValue = parseFloat($caloriesField.val());
+                
+                if (currentValue && currentValue > 0) {
+                    let convertedValue;
+                    if ($(this).val() === 'kj') {
+                        // Convert kcal to kJ (1 kcal = 4.184 kJ)
+                        convertedValue = Math.round(currentValue * 4.184);
+                    } else {
+                        // Convert kJ to kcal (1 kJ = 0.239 kcal)
+                        convertedValue = Math.round(currentValue / 4.184);
+                    }
+                    
+                    $caloriesField.val(convertedValue);
+                    
+                    // Show visual feedback
+                    $caloriesField.css('background-color', 'var(--yellow-faint)');
+                    setTimeout(() => {
+                        $caloriesField.css('background-color', '');
+                    }, 1000);
+                }
+            });
+
+            // Cancel button
+            $('#cancel-btn').on('click', function() {
+                window.location.href = '/food.html';
+            });
+
+            // Form submission
+            $('#food-form').on('submit', async function(e) {
+                e.preventDefault();
+                
+                // Collect quantities
+                const quantities = [];
+                $('.quantity-row').each(function() {
+                    const $nameElement = $(this).find('.quantity-name');
+                    const $weightElement = $(this).find('.quantity-weight');
+                    
+                    const name = $nameElement.val() ? $nameElement.val().trim() : '';
+                    const weightValue = $weightElement.val() ? $weightElement.val().trim() : '';
+                    const weight = weightValue ? parseInt(weightValue) : 0;
+                    
+                    // Only add if both name and weight are valid
+                    if (name && weight > 0) {
+                        quantities.push({ name, weight });
+                    }
+                    
+                    // Convert any remaining text inputs back to selects after form submission
+                    if ($nameElement.attr('type') === 'text' && $nameElement.val().trim()) {
+                        convertToSelect($nameElement[0]);
+                    }
+                });
+
+                // Get calories per 100g and convert to kcal if needed
+                const caloriesValue = parseInt($('#kcal-per-100g').val());
+                const mainCaloriesUnit = $('#main-calories-unit').val();
+                let kcalPer100g = caloriesValue;
+                
+                // Convert kJ to kcal for storage (always store as kcal internally)
+                if (mainCaloriesUnit === 'kj') {
+                    kcalPer100g = Math.round(caloriesValue / 4.184);
+                }
+
+                const foodData = {
+                    name: $('#food-name').val(),
+                    brand: $('#food-brand').val(),
+                    kcal_per_100g: kcalPer100g,
+                    is_ingredient: $('#is-ingredient').is(':checked'),
+                    quantities: quantities
+                };
+
+                try {
+                    // Debug logging
+                    const $quantityRows = $('.quantity-row');
+                    console.log('Debug - Quantity rows found:', $quantityRows.length);
+                    $quantityRows.each(function(index) {
+                        const $nameElement = $(this).find('.quantity-name');
+                        const $weightElement = $(this).find('.quantity-weight');
+                        console.log(`Debug - Row ${index}:`, {
+                            nameElement: $nameElement[0],
+                            nameValue: $nameElement.val(),
+                            nameType: $nameElement.attr('type'),
+                            weightElement: $weightElement[0],
+                            weightValue: $weightElement.val()
+                        });
+                    });
+                    console.log('Debug - Collected quantities:', quantities);
+                    console.log('Food data to save:', foodData);
+                    
+                    // Validation
+                    if (!foodData.name || !foodData.name.trim()) {
+                        alert('Please enter a food name.');
+                        return;
+                    }
+                    
+                    if (!foodData.kcal_per_100g || foodData.kcal_per_100g <= 0) {
+                        alert('Please enter calories per 100g.');
+                        return;
+                    }
+                    
+                    // Save or update the food
+                    const url = action === 'edit' && foodId ? `/api/food/${foodId}` : '/api/food';
+                    const method = action === 'edit' ? 'PUT' : 'POST';
+                    
+                    const response = await $.ajax({
+                        url: url,
+                        method: method,
+                        contentType: 'application/json',
+                        data: JSON.stringify(foodData)
+                    });
+                
+                    alert(`Food "${response.name}" ${action === 'edit' ? 'updated' : 'saved'} successfully with ${quantities.length} quantities!`);
+                    
+                    // Redirect back to food list
+                    window.location.href = '/food.html';
+                    
+                } catch (error) {
+                    console.error('Error saving food:', error);
+                    alert('Error saving food: ' + (error.responseJSON?.error || error.message || 'Please try again.'));
+                }
+            });
+
+            // Load existing food data if editing
+            if (action === 'edit' && foodId) {
+                $.ajax({
+                    url: `/api/food/${foodId}`,
+                    method: 'GET',
+                    success: function(food) {
+                        // Populate form fields
+                        $('#food-name').val(food.name);
+                        $('#food-brand').val(food.brand || '');
+                        $('#kcal-per-100g').val(food.kcal_per_100g);
+                        $('#is-ingredient').prop('checked', food.is_ingredient);
+                        
+                        // Clear existing quantity rows
+                        $('#quantities-container').empty();
+                        
+                        // Add quantity rows for existing data
+                        if (food.quantities && food.quantities.length > 0) {
+                            food.quantities.forEach(quantity => {
+                                addQuantityRow(quantity.name, quantity.weight);
+                            });
+                        } else {
+                            // Add at least one empty row if no quantities exist
+                            addQuantityRow();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading food data:', error);
+                        alert('Error loading food data: ' + (xhr.responseJSON?.error || error || 'Please try again.'));
+                    }
+                });
+            }
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+                // Navbar will automatically set active tab based on current page
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+    </script>
+
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--grey-five);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .calories-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .calories-input-container input {
+            flex: 1;
+        }
+
+        .calories-unit-select {
+            padding: 10px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            background: white;
+            font-size: 1rem;
+            min-width: 70px;
+        }
+
+        .calories-unit-select:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .quantity-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .quantity-name {
+            flex: 2;
+            padding: 8px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            background: white;
+            font-size: 1rem;
+        }
+
+        .quantity-name:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+        
+        /* Ensure text inputs have the same styling as selects */
+        input.quantity-name {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .quantity-weight {
+            flex: 1;
+        }
+
+        .calories-input-group {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .quantity-kcal {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .quantity-kcal:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+
+        .quantity-calories-unit {
+            padding: 6px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            background: white;
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+
+        .quantity-calories-unit:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+
+        .remove-quantity-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .remove-quantity-btn:hover {
+            background-color: #c82333;
+        }
+
+        #add-quantity-btn {
+            background-color: var(--grey-two);
+            color: var(--grey-five);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #add-quantity-btn:hover {
+            background-color: var(--grey-three);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--grey-two);
+        }
+
+        #cancel-btn {
+            background-color: var(--grey-two);
+            color: var(--grey-five);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        #cancel-btn:hover {
+            background-color: var(--grey-three);
+        }
+
+        #save-btn {
+            background-color: var(--yellow-strongest);
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #save-btn:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        @media (max-width: 600px) {
+            .quantity-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</body>
+</html>

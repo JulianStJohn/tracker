@@ -1,5 +1,15 @@
 import { Router, Request, Response } from "express";
 import { MongoStore } from "./mongo";
+import { Day, MealItem, FoodItem } from "./types/collections.js";
+
+// Helper function to create default empty meals
+function createDefaultMeals(): MealItem[] {
+  return [
+    { title: "breakfast", foods: [] },
+    { title: "lunch", foods: [] },
+    { title: "dinner", foods: [] }
+  ];
+}
 
 export function makeDayRouter(mongo: MongoStore): Router {
   const router = Router();
@@ -18,11 +28,11 @@ export function makeDayRouter(mongo: MongoStore): Router {
       // Try to find existing day
       let day = await mongo.days.findOne({ yyyymmdd });
 
-      // If doesn't exist, create it
+      // If doesn't exist, create it with default meals
       if (!day) {
         const newDay = {
           yyyymmdd,
-          meals: []
+          meals: createDefaultMeals()
         };
         
         const result = await mongo.days.insertOne(newDay);
@@ -32,6 +42,229 @@ export function makeDayRouter(mongo: MongoStore): Router {
       res.json(day);
     } catch (error) {
       console.error("Error in /day/today:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /day/:yyyymmdd - Get or create a specific day entry
+  router.get("/:yyyymmdd", async (req: Request, res: Response) => {
+    try {
+      const yyyymmdd = parseInt(req.params.yyyymmdd);
+      
+      // Validate date format
+      if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYYMMDD." });
+      }
+
+      // Validate date is reasonable (between 1900 and 2100)
+      if (yyyymmdd < 19000101 || yyyymmdd > 21001231) {
+        return res.status(400).json({ error: "Date out of reasonable range." });
+      }
+
+      // Try to find existing day
+      let day = await mongo.days.findOne({ yyyymmdd });
+
+      // If doesn't exist, create it with default meals
+      if (!day) {
+        const newDay = {
+          yyyymmdd,
+          meals: createDefaultMeals()
+        };
+        
+        const result = await mongo.days.insertOne(newDay);
+        day = await mongo.days.findOne({ _id: result.insertedId });
+      }
+
+      res.json(day);
+    } catch (error) {
+      console.error(`Error in /day/${req.params.yyyymmdd}:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // POST /day/:yyyymmdd/meals - Add a new meal to a specific day
+  router.post("/:yyyymmdd/meals", async (req: Request, res: Response) => {
+    try {
+      const yyyymmdd = parseInt(req.params.yyyymmdd);
+      const { title, insertAfterIndex } = req.body;
+      
+      // Validate date format
+      if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYYMMDD." });
+      }
+
+      // Validate meal title
+      if (!title || typeof title !== 'string' || !title.trim()) {
+        return res.status(400).json({ error: "Meal title is required." });
+      }
+
+      // Find or create the day
+      let day = await mongo.days.findOne({ yyyymmdd });
+      if (!day) {
+        const newDay = {
+          yyyymmdd,
+          meals: createDefaultMeals()
+        };
+        const result = await mongo.days.insertOne(newDay);
+        day = await mongo.days.findOne({ _id: result.insertedId });
+      }
+
+      // Create new meal
+      const newMeal: MealItem = {
+        title: title.trim().toLowerCase(),
+        foods: []
+      };
+
+      // Insert the meal at the specified position
+      const meals = [...day!.meals];
+      const insertIndex = typeof insertAfterIndex === 'number' && insertAfterIndex >= 0 ? insertAfterIndex + 1 : meals.length;
+      meals.splice(insertIndex, 0, newMeal);
+
+      // Update the day with the new meals array
+      await mongo.days.updateOne(
+        { yyyymmdd },
+        { $set: { meals } }
+      );
+
+      // Return the updated day
+      const updatedDay = await mongo.days.findOne({ yyyymmdd });
+      res.json(updatedDay);
+    } catch (error) {
+      console.error(`Error adding meal to day ${req.params.yyyymmdd}:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // PUT /day/:yyyymmdd - Update an entire day (including meals)
+  router.put("/:yyyymmdd", async (req: Request, res: Response) => {
+    try {
+      const yyyymmdd = parseInt(req.params.yyyymmdd);
+      const { meals } = req.body;
+      
+      // Validate date format
+      if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYYMMDD." });
+      }
+
+      // Validate meals array
+      if (!Array.isArray(meals)) {
+        return res.status(400).json({ error: "Meals must be an array." });
+      }
+
+      // Find the existing day
+      const existingDay = await mongo.days.findOne({ yyyymmdd });
+      if (!existingDay) {
+        return res.status(404).json({ error: "Day not found." });
+      }
+
+      // Update the day with new meals
+      await mongo.days.updateOne(
+        { yyyymmdd },
+        { $set: { meals } }
+      );
+
+      // Return the updated day
+      const updatedDay = await mongo.days.findOne({ yyyymmdd });
+      res.json(updatedDay);
+    } catch (error) {
+      console.error(`Error updating day ${req.params.yyyymmdd}:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // POST /day/:yyyymmdd/meals/:mealIndex/foods - Add a food to a specific meal
+  router.post("/:yyyymmdd/meals/:mealIndex/foods", async (req: Request, res: Response) => {
+    try {
+      const yyyymmdd = parseInt(req.params.yyyymmdd);
+      const mealIndex = parseInt(req.params.mealIndex);
+      const { foodId, weight, quantity, quantity_type } = req.body;
+      
+      // Validate date format
+      if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
+        return res.status(400).json({ error: "Invalid date format. Use YYYYMMDD." });
+      }
+
+      // Validate meal index
+      if (isNaN(mealIndex) || mealIndex < 0) {
+        return res.status(400).json({ error: "Invalid meal index." });
+      }
+
+      // Validate food data
+      if (!foodId || typeof foodId !== 'string') {
+        return res.status(400).json({ error: "Food ID is required." });
+      }
+
+      if (!weight || typeof weight !== 'number' || weight <= 0) {
+        return res.status(400).json({ error: "Valid weight in grams is required." });
+      }
+
+      // Find the day
+      const day = await mongo.days.findOne({ yyyymmdd });
+      if (!day) {
+        return res.status(404).json({ error: "Day not found." });
+      }
+
+      // Validate meal index exists
+      if (mealIndex >= day.meals.length) {
+        return res.status(400).json({ error: "Meal index out of range." });
+      }
+
+      // Get the food details
+      let food;
+      try {
+        const { ObjectId } = await import('mongodb');
+        if (ObjectId.isValid(foodId)) {
+          food = await mongo.foods.findOne({ _id: new ObjectId(foodId) });
+        }
+      } catch (objectIdError) {
+        // ObjectId creation failed, will try name lookup below
+      }
+
+      // If not found by ID, try to find by name
+      if (!food) {
+        food = await mongo.getFoodByName(foodId);
+      }
+
+      if (!food) {
+        return res.status(404).json({ error: `Food not found: ${foodId}` });
+      }
+
+      // Calculate calories for this portion
+      const kcal = Math.round((food.kcal_per_100g * weight) / 100);
+
+      // Create the food item
+      const foodItem: FoodItem = {
+        title: food.name,
+        kcal: kcal,
+        weight: Math.round(weight)
+      };
+
+      // Add brand if it exists
+      if (food.brand) {
+        foodItem.brand = food.brand;
+      }
+
+      // Add quantity information if provided
+      if (quantity !== null && quantity !== undefined) {
+        foodItem.quantity = quantity;
+      }
+      if (quantity_type) {
+        foodItem.quantity_type = quantity_type;
+      }
+
+      // Add the food to the meal
+      const meals = [...day.meals];
+      meals[mealIndex].foods.push(foodItem);
+
+      // Update the day
+      await mongo.days.updateOne(
+        { yyyymmdd },
+        { $set: { meals } }
+      );
+
+      res.json({ message: "Food added to meal successfully" });
+    } catch (error) {
+      console.error(`Error adding food to meal ${req.params.mealIndex} on day ${req.params.yyyymmdd}:`, error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
