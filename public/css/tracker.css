@@ -1,0 +1,92 @@
+
+:root {
+      --yellow-faint: #fffcd4;
+      --yellow-stronger: #fff017;
+      --yellow-strongest: #e3d400;
+      --dark-yellow: #bdb43e;
+
+      --grey-one: #f7f7f7;
+      --grey-two: #e1e2e3;
+      --grey-three: #aeafb0;
+      --grey-four: #787878;
+      --grey-five: #3f3f40;
+
+    font-size:16px;
+} 
+
+body { 
+  background: #fff; 
+  font-size: 0.9rem;
+  font-family: "Roboto", Arial, sans-serif;
+}
+
+/* Headings use Roboto Condensed */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Roboto Condensed", "Roboto", Arial, sans-serif;
+}
+
+#page-container {
+  width: 100%;
+  max-width: 900px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Navbar styles */
+#navbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--grey-two);
+  margin-bottom: 20px;
+}
+
+.navbar-title {
+  font-family: "Roboto Condensed", "Roboto", Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--grey-five);
+  margin-right: 20px;
+}
+
+.navbar-tab {
+  border: none;
+  background-color: var(--grey-two);
+  padding: 8px 16px;
+  margin-right: 10px;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--grey-five);
+}
+
+.navbar-tab:hover {
+  background-color: var(--yellow-stronger);
+}
+
+.navbar-tab.active {
+  background-color: var(--yellow-strongest);
+  color: black;
+}
+
+.navbar-spacer {
+  flex-grow: 1;
+}
+
+.navbar-link {
+  border: none;
+  background-color: var(--grey-three);
+  padding: 8px 16px;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--grey-five);
+}
+
+.navbar-link:hover {
+  background-color: var(--dark-yellow);
+}
+
+
+
+
