@@ -14,8 +14,6 @@ import util from "node:util";
 
 // ---- Config ----
 
-export const CHROME_EXTENSION_ORIGIN = `chrome-extension://${process.env.CHROME_EXTENSION_ID}`;
-
 export const COOKIE_SECRET = process.env['COOKIE_SECRET']
 export const DB_NAME = process.env['DB_NAME']
 export const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;

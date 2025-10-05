@@ -8,6 +8,7 @@ export function makeCorsRouter(): Router {
   
   r.use((req, res, next) => {
     const origin = req.headers.origin;
+    /*
     if (origin === config.CHROME_EXTENSION_ORIGIN) {
       res.header("Access-Control-Allow-Origin", config.CHROME_EXTENSION_ORIGIN);
       res.header("Access-Control-Allow-Credentials", "true");
@@ -16,6 +17,7 @@ export function makeCorsRouter(): Router {
       res.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
       if (req.method === "OPTIONS") return res.sendStatus(204);
     }
+      */
     next();
   });
 
