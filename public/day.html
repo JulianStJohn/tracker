@@ -9,7 +9,127 @@
     <link rel="stylesheet" href="/css/tracker.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
-        /* Page container styling handled by tracker.css */        .header-section {
+        /* Page container styling handled by tracker.css */
+        
+        .summary-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .date-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .date-display {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .calorie-summary {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .calorie-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calorie-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .calorie-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .progress-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .progress-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .add-food-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .add-food-btn:hover {
+            background: #218838;
+        }
+
+        .add-meal-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .add-meal-btn:hover {
+            background: #0056b3;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -18,10 +138,7 @@
             border-bottom: 1px solid #e0e0e0;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
+
 
         #dayList {
             padding: 0;
@@ -50,6 +167,16 @@
             padding: 1rem;
             background: #f8f9fa;
             border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .meal-header:hover {
+            background: #e9ecef;
+        }
+
+        .meal-item.collapsed .meal-header {
+            border-bottom: none;
         }
 
         .meal-info {
@@ -57,27 +184,10 @@
         }
 
         .meal-title {
-            margin: 0 0 0.5rem 0;
+            margin: 0;
             font-size: 1.2rem;
             color: #333;
             text-transform: capitalize;
-        }
-
-        .meal-summary {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .food-summary {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .calories-summary {
-            color: #28a745;
-            font-weight: bold;
-            font-size: 0.9rem;
         }
 
         .meal-actions {
@@ -122,6 +232,14 @@
 
         .meal-foods {
             padding: 1rem;
+        }
+
+        .meal-item.collapsed .meal-foods {
+            display: none;
+        }
+
+        .meal-item.collapsed .meal-footer {
+            display: none;
         }
 
         .food-item {
@@ -225,14 +343,31 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .btn-add-food-meal {
-            background-color: #4CAF50;
+        .btn-delete-meal-footer {
+            background-color: #dc3545;
             color: white;
         }
 
-        .btn-add-meal-meal {
-            background-color: #2196F3;
+        .btn-delete-meal-footer:hover {
+            background-color: #c82333;
+        }
+
+        .btn-add-meal-below {
+            background-color: #007bff;
             color: white;
+        }
+
+        .btn-add-meal-below:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-save-meal {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save-meal:hover {
+            background-color: #218838;
         }
 
         @media (max-width: 768px) {
@@ -240,29 +375,46 @@
                 padding: 0 1rem;
             }
 
+            .summary-panel {
+                padding: 1.5rem;
+            }
+
+            .date-display {
+                font-size: 1.5rem;
+            }
+
+            .calorie-summary {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .calorie-item {
+                justify-content: space-between;
+            }
+
+            .date-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .header-actions {
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 0.5rem;
+            }
+
+            .header-actions button {
+                flex: 1;
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
+
             .header-section {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 1rem;
-            }
-
-            .header-actions {
-                justify-content: center;
-            }
-
-            .meal-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-            }
-
-            .meal-actions {
-                justify-content: center;
-            }
-
-            .meal-summary {
-                align-items: center;
-                text-align: center;
             }
 
             .food-item {
@@ -277,8 +429,23 @@
     <div id="page-container">
         <div id="navbar-container"></div>
         
-        <div class="header-section">
-            <h1 id="pageTitle">Food Tracker</h1>
+        <div class="summary-panel">
+            <div class="summary-info">
+                <div class="date-header">
+                    <h1 class="date-display" id="dateDisplay">Today</h1>
+                    <a href="/progress.html" class="progress-link">View Progress →</a>
+                </div>
+                <div class="calorie-summary">
+                    <div class="calorie-item">
+                        <span class="calorie-label">Total kCal:</span>
+                        <span class="calorie-value" id="totalKcal">0</span>
+                    </div>
+                    <div class="calorie-item">
+                        <span class="calorie-label">Remaining:</span>
+                        <span class="calorie-value" id="remainingKcal">2000</span>
+                    </div>
+                </div>
+            </div>
             <div class="header-actions">
                 <button id="prevDayBtn" class="btn btn-outline">← Previous Day</button>
                 <button id="todayBtn" class="btn btn-secondary">Today</button>
@@ -296,16 +463,24 @@
         $(document).ready(function() {
             loadNavbar();
 
-            // Get date from query parameter or use today
+            // We'll restore expanded meals state after loading the day
+
+            // Get date from query parameter, localStorage, or use today
             const urlParams = new URLSearchParams(window.location.search);
             const dateParam = urlParams.get('yyyymmdd');
             
             if (dateParam && /^\d{8}$/.test(dateParam)) {
                 currentDate = parseInt(dateParam);
             } else {
-                // Use today's date if no valid parameter provided
-                const today = new Date();
-                currentDate = parseInt(formatDateToYYYYMMDD(today));
+                // Try to restore from localStorage
+                const savedDate = localStorage.getItem('dayPage_currentDate');
+                if (savedDate && /^\d{8}$/.test(savedDate)) {
+                    currentDate = parseInt(savedDate);
+                } else {
+                    // Use today's date if no valid saved date
+                    const today = new Date();
+                    currentDate = parseInt(formatDateToYYYYMMDD(today));
+                }
             }
 
             loadDay(currentDate);
@@ -315,7 +490,14 @@
             $('#nextDayBtn').click(() => navigateDay(1));
             $('#todayBtn').click(() => navigateToToday());
 
+            // Set up action buttons
+            $('#addFoodBtn').click(() => addFoodToDay());
+            $('#addMealBtn').click(() => addMealToDay());
 
+            // Save state when leaving the page
+            $(window).on('beforeunload', function() {
+                savePageState();
+            });
         });
 
         function loadNavbar() {
@@ -330,33 +512,72 @@
         function loadDay(yyyymmdd) {
             currentDate = yyyymmdd;
             
-            // Update page title
+            // Save current date to localStorage
+            localStorage.setItem('dayPage_currentDate', yyyymmdd.toString());
+            
+            // Update date display
             const dateStr = formatDateForDisplay(yyyymmdd);
-            $('#pageTitle').text(`Food Tracker - ${dateStr}`);
+            $('#dateDisplay').text(dateStr);
+            document.title = `Food Tracker - ${dateStr}`;
             
             // Update URL without refreshing page
             const newUrl = `${window.location.pathname}?yyyymmdd=${yyyymmdd}`;
             window.history.pushState({}, '', newUrl);
 
+            // Restore expanded meals state for this specific date
+            const savedExpandedMeals = localStorage.getItem(`dayPage_expandedMeals_${yyyymmdd}`);
+            if (savedExpandedMeals) {
+                expandedMeals = new Set(JSON.parse(savedExpandedMeals));
+            } else {
+                expandedMeals = new Set();
+            }
+
             $.ajax({
                 url: `/day/${yyyymmdd}`,
                 method: 'GET',
                 success: function(day) {
+                    console.log('Day loaded successfully:', day);
                     displayDay(day);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error fetching day:', error);
+                    console.error('Error fetching day:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error
+                    });
+                    
                     if (xhr.status === 404) {
-                        $('#dayList').html('<li>No food tracking data for this day</li>');
+                        // Day doesn't exist, display empty day with option to add meals
+                        console.log('Day not found (404), creating empty day display');
+                        const emptyDay = {
+                            yyyymmdd: yyyymmdd,
+                            meals: [],
+                            goal_kcal: 2000
+                        };
+                        displayDay(emptyDay);
                     } else {
-                        $('#dayList').html('<li>Error loading day entry</li>');
+                        console.error('Non-404 error, showing error message');
+                        $('#dayList').html(`<li>Error loading day entry: ${xhr.status} ${xhr.statusText}</li>`);
                     }
                 }
             });
         }
 
+        // Store current day data globally for meal toggling
+        let currentDayData = null;
+        
+        // Store expanded meal states
+        let expandedMeals = new Set();
+
         function displayDay(day) {
             console.log('Displaying day:', day); // Debug log
+            
+            // Store the day data for meal toggling
+            currentDayData = day;
+            
+            // Update summary panel
+            updateSummaryPanel(day);
             
             if (!day || !day.meals || day.meals.length === 0) {
                 $('#dayList').html(`
@@ -388,24 +609,31 @@
                 }
                 
                 html += `
-                    <div class="meal-item" data-meal-index="${index}">
-                        <div class="meal-header">
+                    <div class="meal-item collapsed" data-meal-index="${index}">
+                        <div class="meal-header" onclick="toggleMeal(${index})">
                             <div class="meal-info">
-                                <h3 class="meal-title">${escapeHtml(meal.title)}</h3>
-                                <div class="meal-summary">
-                                    <span class="food-summary">${escapeHtml(foodSummary)}</span>
-                                    <span class="calories-summary">${totalKcal} kcal</span>
-                                </div>
+                                <h3 class="meal-title">${escapeHtml(meal.title)} - ${totalKcal} kcal</h3>
                             </div>
                             <div class="meal-actions">
-                                <button class="btn-add-meal" onclick="addMealAfter(${index})" title="Add meal below">+</button>
-                                <button class="btn-edit-meal" onclick="editMeal(${index})" title="Edit meal">
+                                <button class="btn-add-food-to-meal" onclick="event.stopPropagation(); addFoodToMeal(${index})" title="Add Food to Meal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                    </svg>
+                                </button>
+                                <button class="btn-add-meal-to-meal" onclick="event.stopPropagation(); addMealToExisting(${index})" title="Add Saved Meal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-plus" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5"/>
+                                        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+                                        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                    </svg>
+                                </button>
+                                <button class="btn-edit-meal" onclick="event.stopPropagation(); editMeal(${index})" title="Edit meal">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                         <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                                         <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
                                     </svg>
                                 </button>
-                                <button class="btn-delete-meal" onclick="deleteMeal(${index})" title="Delete meal">-</button>
                             </div>
                         </div>
                         ${meal.foods && meal.foods.length > 0 ? `
@@ -425,11 +653,22 @@
                             </div>
                         `}
                         <div class="meal-footer">
-                            <button class="meal-action-btn btn-add-food-meal" onclick="addFoodToMeal(${index})">
-                                Add Food
+                            <button class="meal-action-btn btn-delete-meal-footer" onclick="deleteMeal(${index})" title="Delete meal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                </svg>
                             </button>
-                            <button class="meal-action-btn btn-add-meal-meal" onclick="addMealToExisting(${index})">
-                                Add Meal
+                            <button class="meal-action-btn btn-add-meal-below" onclick="addMealAfter(${index})" title="Add meal below">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-plus" viewBox="0 0 16 16">
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+                                    <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5zM8 8a.5.5 0 0 1 .5.5V10H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V11H6a.5.5 0 0 1 0-1h1.5V8.5A.5.5 0 0 1 8 8"/>
+                                </svg>
+                            </button>
+                            <button class="meal-action-btn btn-save-meal" onclick="saveMealTemplate(${index})" title="Save this meal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
+                                    <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
@@ -446,6 +685,9 @@
             */
             
             $('#dayList').html(html);
+            
+            // Restore expanded states after rendering
+            restoreExpandedStates();
         }
 
         function navigateDay(direction) {
@@ -494,8 +736,7 @@
             } else {
                 return date.toLocaleDateString('en-US', { 
                     weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
+                    month: 'short', 
                     day: 'numeric' 
                 });
             }
@@ -517,6 +758,19 @@
                     insertAfterIndex: index >= 0 ? index : undefined
                 }),
                 success: function(updatedDay) {
+                    // When adding a meal, we need to adjust expanded meal indices
+                    // since a new meal was inserted
+                    const newExpandedMeals = new Set();
+                    expandedMeals.forEach(expandedIndex => {
+                        if (expandedIndex > index) {
+                            // Shift indices after the insertion point
+                            newExpandedMeals.add(expandedIndex + 1);
+                        } else {
+                            newExpandedMeals.add(expandedIndex);
+                        }
+                    });
+                    expandedMeals = newExpandedMeals;
+                    
                     displayDay(updatedDay);
                 },
                 error: function(xhr, status, error) {
@@ -529,6 +783,18 @@
         function editMeal(index) {
             // Redirect to meal editing page
             window.location.href = `/edit_meal.html?day=${currentDate}&meal=${index}`;
+        }
+
+        function addFoodToMeal(mealIndex) {
+            // Store the target meal index for when we return from food selection
+            localStorage.setItem('targetMealIndex', mealIndex);
+            window.location.href = 'add_food.html?returnTo=day&dayId=' + currentDate;
+        }
+
+        function addMealToExisting(mealIndex) {
+            // Store the target meal index for when we return from meal selection
+            localStorage.setItem('targetMealIndex', mealIndex);
+            window.location.href = 'add_meal.html?returnTo=day&dayId=' + currentDate;
         }
 
         function deleteMeal(index) {
@@ -558,6 +824,21 @@
                         data: JSON.stringify({ meals: updatedMeals }),
                         success: function(response) {
                             console.log('Meal deleted successfully');
+                            
+                            // When deleting a meal, we need to adjust expanded meal indices
+                            const newExpandedMeals = new Set();
+                            expandedMeals.forEach(expandedIndex => {
+                                if (expandedIndex < index) {
+                                    // Keep indices before the deleted meal
+                                    newExpandedMeals.add(expandedIndex);
+                                } else if (expandedIndex > index) {
+                                    // Shift indices after the deleted meal down by 1
+                                    newExpandedMeals.add(expandedIndex - 1);
+                                }
+                                // Skip the deleted meal index (expandedIndex === index)
+                            });
+                            expandedMeals = newExpandedMeals;
+                            
                             // Reload the day view to show the updated meals
                             loadDay(currentDate);
                         },
@@ -588,6 +869,181 @@
             // Redirect to meals.html to select a saved meal to add to this specific day meal
             window.location.href = `meals.html?day=${currentDate}&meal=${mealIndex}`;
         }
+
+        function toggleMeal(index) {
+            const mealItem = $(`.meal-item[data-meal-index="${index}"]`);
+            const isCollapsed = mealItem.hasClass('collapsed');
+            
+            if (isCollapsed) {
+                // Expand the meal - show detailed view
+                mealItem.removeClass('collapsed');
+                expandedMeals.add(index);
+                
+                // Update meal header to show detailed summary
+                const mealInfo = mealItem.find('.meal-info');
+                const meal = getCurrentMealData(index);
+                
+                if (meal) {
+                    const totalKcal = meal.foods ? meal.foods.reduce((sum, food) => sum + food.kcal, 0) : 0;
+                    const foodCount = meal.foods ? meal.foods.length : 0;
+                    
+                    // Create food summary
+                    let foodSummary = '';
+                    if (foodCount === 0) {
+                        foodSummary = 'No foods added';
+                    } else if (foodCount <= 3) {
+                        foodSummary = meal.foods.map(food => food.title).join(', ');
+                    } else {
+                        const firstTwo = meal.foods.slice(0, 2).map(food => food.title).join(', ');
+                        foodSummary = `${firstTwo} + ${foodCount - 2} more`;
+                    }
+                    
+                    mealInfo.html(`
+                        <h3 class="meal-title">${escapeHtml(meal.title)}</h3>
+                        <div class="meal-summary">
+                            <span class="food-summary">${escapeHtml(foodSummary)}</span>
+                            <span class="calories-summary">${totalKcal} kcal</span>
+                        </div>
+                    `);
+                }
+            } else {
+                // Collapse the meal - show simple view
+                mealItem.addClass('collapsed');
+                expandedMeals.delete(index);
+                
+                // Update meal header to show simple view
+                const mealInfo = mealItem.find('.meal-info');
+                const meal = getCurrentMealData(index);
+                
+                if (meal) {
+                    const totalKcal = meal.foods ? meal.foods.reduce((sum, food) => sum + food.kcal, 0) : 0;
+                    mealInfo.html(`
+                        <h3 class="meal-title">${escapeHtml(meal.title)} - ${totalKcal} kcal</h3>
+                    `);
+                }
+            }
+            
+            // Save expanded states to localStorage
+            savePageState();
+        }
+
+        function getCurrentMealData(index) {
+            if (currentDayData && currentDayData.meals && currentDayData.meals[index]) {
+                return currentDayData.meals[index];
+            }
+            return null;
+        }
+
+        function updateSummaryPanel(day) {
+            // Calculate total calories consumed
+            let totalConsumed = 0;
+            if (day && day.meals) {
+                totalConsumed = day.meals.reduce((dayTotal, meal) => {
+                    if (meal.foods) {
+                        return dayTotal + meal.foods.reduce((mealTotal, food) => mealTotal + food.kcal, 0);
+                    }
+                    return dayTotal;
+                }, 0);
+            }
+            
+            // Get goal calories (default to 2000 if not set)
+            const goalKcal = day?.goal_kcal || 2000;
+            const remainingKcal = goalKcal - totalConsumed;
+            
+            // Update the display
+            $('#totalKcal').text(totalConsumed);
+            $('#remainingKcal').text(remainingKcal);
+            
+            // Style the remaining calories based on whether it's positive or negative
+            const remainingElement = $('#remainingKcal');
+            if (remainingKcal < 0) {
+                remainingElement.css('color', '#ff6b6b');
+            } else if (remainingKcal < 200) {
+                remainingElement.css('color', '#ffa726');
+            } else {
+                remainingElement.css('color', 'inherit');
+            }
+        }
+
+        function savePageState() {
+            // Save current date and expanded meals to localStorage
+            if (currentDate) {
+                localStorage.setItem('dayPage_currentDate', currentDate.toString());
+                localStorage.setItem(`dayPage_expandedMeals_${currentDate}`, JSON.stringify(Array.from(expandedMeals)));
+            }
+        }
+
+        function restoreExpandedStates() {
+            // Apply expanded states to rendered meals
+            expandedMeals.forEach(index => {
+                const mealItem = $(`.meal-item[data-meal-index="${index}"]`);
+                if (mealItem.length > 0) {
+                    // Remove collapsed class and update header
+                    mealItem.removeClass('collapsed');
+                    
+                    const mealInfo = mealItem.find('.meal-info');
+                    const meal = getCurrentMealData(index);
+                    
+                    if (meal) {
+                        const totalKcal = meal.foods ? meal.foods.reduce((sum, food) => sum + food.kcal, 0) : 0;
+                        const foodCount = meal.foods ? meal.foods.length : 0;
+                        
+                        // Create food summary
+                        let foodSummary = '';
+                        if (foodCount === 0) {
+                            foodSummary = 'No foods added';
+                        } else if (foodCount <= 3) {
+                            foodSummary = meal.foods.map(food => food.title).join(', ');
+                        } else {
+                            const firstTwo = meal.foods.slice(0, 2).map(food => food.title).join(', ');
+                            foodSummary = `${firstTwo} + ${foodCount - 2} more`;
+                        }
+                        
+                        mealInfo.html(`
+                            <h3 class="meal-title">${escapeHtml(meal.title)}</h3>
+                            <div class="meal-summary">
+                                <span class="food-summary">${escapeHtml(foodSummary)}</span>
+                                <span class="calories-summary">${totalKcal} kcal</span>
+                            </div>
+                        `);
+                    }
+                }
+            });
+        }
+
+        function addFoodToDay() {
+            // Redirect to food.html with context about adding to current day
+            const queryParams = new URLSearchParams({
+                action: 'add-to-day',
+                day: currentDate.toString()
+            });
+            window.location.href = `food.html?${queryParams.toString()}`;
+        }
+
+        function addMealToDay() {
+            // Redirect to meals.html to select a saved meal to add to this day
+            window.location.href = `meals.html?day=${currentDate}`;
+        }
+
+        function saveMealTemplate(mealIndex) {
+            const meal = getCurrentMealData(mealIndex);
+            if (!meal) {
+                alert('Meal not found');
+                return;
+            }
+
+            // Create a query string to pass the meal data to edit_meal.html
+            const queryParams = new URLSearchParams({
+                action: 'save-as-template',
+                day: currentDate.toString(),
+                meal: mealIndex.toString()
+            });
+            
+            // Redirect to edit_meal.html in "save as template" mode
+            window.location.href = `edit_meal.html?${queryParams.toString()}`;
+        }
+
+
 
         function escapeHtml(text) {
             const div = document.createElement('div');

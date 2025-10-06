@@ -1,7 +1,7 @@
 import { MongoClient, Db, Collection, Document, CreateIndexesOptions } from "mongodb";
 import "dotenv/config";
 import * as config from "./config.js"
-import { Food, FoodItem, MealItem, Meal, Day } from "./types/collections.js"
+import { Food, FoodItem, MealItem, Meal, Recipe, Day } from "./types/collections.js"
 
 // Helper function to create default empty meals
 function createDefaultMeals(): MealItem[] {
@@ -38,13 +38,18 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
                 required: ["title", "kcal"],
                 properties: {
                   title: { bsonType: "string", description: "Food title (required)" },
-                  kcal: { bsonType: ["int", "double"], description: "Calories (required)" }
+                  kcal: { bsonType: ["int", "double"], description: "Calories (required)" },
+                  weight: { bsonType: ["int", "double"], description: "Weight in grams (optional)" },
+                  brand: { bsonType: "string", description: "Food brand (optional)" },
+                  quantity: { bsonType: ["int", "double"], description: "Quantity multiplier (optional)" },
+                  quantity_type: { bsonType: "string", description: "Quantity type (optional)" }
                 }
               }
             }
           }
         }
-      }
+      },
+      goal_kcal: { bsonType: ["int", "double"], description: "Daily calorie goal (optional)" }
     } 
   },
   "food" : {
@@ -91,6 +96,31 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
       date_created: { bsonType: "date", description: "Date meal was created (required)" },
       date_last_used: { bsonType: "date", description: "Date meal was last used (required)" }
     }
+  },
+  "recipes" : {
+    required_fields: ["name", "foods", "steps", "portions", "total_kcal", "date_created", "date_last_used"],
+    properties: {
+      _id: { bsonType: "objectId" },      
+      name: { bsonType: "string", description: "Recipe name (required)" },
+      foods: {
+        bsonType: "array",
+        description: "Array of food items (required)",
+        items: {
+          bsonType: "object",
+          required: ["title", "kcal", "weight"],
+          properties: {
+            title: { bsonType: "string", description: "Food title (required)" },
+            kcal: { bsonType: ["int", "double"], description: "Calories (required)" },
+            weight: { bsonType: ["int", "double"], description: "Weight in grams (required)" }
+          }
+        }
+      },
+      steps: { bsonType: "string", description: "Recipe steps in markdown format (required)" },
+      portions: { bsonType: ["int", "double"], description: "Number of portions recipe makes (required)" },
+      total_kcal: { bsonType: ["int", "double"], description: "Total calories for the recipe (required)" },
+      date_created: { bsonType: "date", description: "Date recipe was created (required)" },
+      date_last_used: { bsonType: "date", description: "Date recipe was last used (required)" }
+    }
   }
 }
 
@@ -101,7 +131,8 @@ export class MongoStore {
     private db: Db,
     private _days: Collection<Day>,
     private _foods: Collection<Food>,
-    private _meals: Collection<Meal>
+    private _meals: Collection<Meal>,
+    private _recipes: Collection<Recipe>
   ) {}
 
   // ---- Startup (connect + ensure collection) ----
@@ -167,14 +198,19 @@ export class MongoStore {
     const meals = db.collection<Meal>("meals");
     await ensureIndexIfMissing(meals, { name: 1 }, { unique: true, name: 'unique_meal_name' });
 
+    // Create the recipes collection and ensure unique index on name
+    const recipes = db.collection<Recipe>("recipes");
+    await ensureIndexIfMissing(recipes, { name: 1 }, { unique: true, name: 'unique_recipe_name' });
+
     console.log(`Connected to MongoDB at ${config.MONGO_URI}, DB '${config.DB_NAME}'.`);
-    return new MongoStore(client, db, days, foods, meals);
+    return new MongoStore(client, db, days, foods, meals, recipes);
   }
 
   get database(): Db { return this.db; }
   get days(): Collection<Day> { return this._days; }
   get foods(): Collection<Food> { return this._foods; }
   get meals(): Collection<Meal> { return this._meals; }
+  get recipes(): Collection<Recipe> { return this._recipes; }
 
   static async createCollection(db: Db, collection: string) {
     await db.createCollection(collection, {
@@ -336,6 +372,45 @@ export class MongoStore {
 
   async deleteMeal(name: string): Promise<boolean> {
     const result = await this._meals.deleteOne({ name });
+    return result.deletedCount > 0;
+  }
+
+  // ---- Recipe CRUD operations ----
+  
+  async createRecipe(recipe: Omit<Recipe, '_id'>): Promise<Recipe> {
+    const result = await this._recipes.insertOne(recipe);
+    const newRecipe = await this._recipes.findOne({ _id: result.insertedId });
+    return newRecipe!;
+  }
+
+  async getRecipeByName(name: string): Promise<Recipe | null> {
+    return this._recipes.findOne({ name });
+  }
+
+  async getAllRecipes(): Promise<Recipe[]> {
+    return this._recipes.find({}).sort({ date_last_used: -1 }).toArray();
+  }
+
+  async updateRecipe(name: string, updates: Partial<Omit<Recipe, '_id' | 'name'>>): Promise<Recipe | null> {
+    const result = await this._recipes.findOneAndUpdate(
+      { name },
+      { $set: updates },
+      { returnDocument: 'after' }
+    );
+    return result;
+  }
+
+  async updateRecipeLastUsed(name: string): Promise<Recipe | null> {
+    const result = await this._recipes.findOneAndUpdate(
+      { name },
+      { $set: { date_last_used: new Date() } },
+      { returnDocument: 'after' }
+    );
+    return result;
+  }
+
+  async deleteRecipe(name: string): Promise<boolean> {
+    const result = await this._recipes.deleteOne({ name });
     return result.deletedCount > 0;
   }
 

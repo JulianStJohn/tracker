@@ -10,10 +10,17 @@ function calculateTotalKcal(foods: FoodItem[]): number {
 export function makeMealRouter(mongo: MongoStore): Router {
   const router = Router();
 
-  // GET /meals - Get all meals
+  // GET /meals - Get recent meals (last 7 by default)
   router.get("/", async (req: Request, res: Response) => {
     try {
-      const meals = await mongo.getAllMeals();
+      const { limit } = req.query;
+      const maxResults = typeof limit === 'string' ? parseInt(limit) || 7 : 7;
+      
+      const meals = await mongo.meals.find({})
+        .sort({ date_last_used: -1 })
+        .limit(maxResults)
+        .toArray();
+      
       res.json(meals);
     } catch (error) {
       console.error("Error fetching meals:", error);
@@ -21,7 +28,7 @@ export function makeMealRouter(mongo: MongoStore): Router {
     }
   });
 
-  // GET /meals/search - Search meals by name
+  // GET /meals/search - Search meals by name with tokenized search
   router.get("/search", async (req: Request, res: Response) => {
     try {
       const { q, limit } = req.query;
@@ -30,12 +37,18 @@ export function makeMealRouter(mongo: MongoStore): Router {
       
       let meals;
       if (searchQuery) {
-        // Search by name (case-insensitive)
-        meals = await mongo.meals.find(
-          { name: { $regex: searchQuery, $options: 'i' } }
-        ).limit(maxResults).sort({ date_last_used: -1 }).toArray();
+        // Tokenize search query - split by spaces and create regex for each token
+        const tokens = searchQuery.trim().toLowerCase().split(/\s+/);
+        const regexConditions = tokens.map(token => ({
+          name: { $regex: token, $options: 'i' }
+        }));
+        
+        // All tokens must match (AND condition)
+        meals = await mongo.meals.find({
+          $and: regexConditions
+        }).limit(maxResults).sort({ date_last_used: -1 }).toArray();
       } else {
-        // Return all meals if no search query
+        // Return recent meals if no search query
         meals = await mongo.meals.find({}).limit(maxResults).sort({ date_last_used: -1 }).toArray();
       }
       

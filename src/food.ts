@@ -5,7 +5,7 @@ import { Food } from "./types/collections.js";
 export function makeFoodRouter(mongo: MongoStore): Router {
   const router = Router();
 
-  // GET /food/search - Search foods by name
+  // GET /food/search - Search foods by name with tokenized search
   router.get("/search", async (req: Request, res: Response) => {
     try {
       const { q, limit } = req.query;
@@ -14,12 +14,21 @@ export function makeFoodRouter(mongo: MongoStore): Router {
       
       let foods;
       if (searchQuery) {
-        // Search by name (case-insensitive)
-        foods = await mongo.foods.find(
-          { name: { $regex: searchQuery, $options: 'i' } }
-        ).limit(maxResults).sort({ name: 1 }).toArray();
+        // Tokenize search query - split by spaces and create regex for each token
+        const tokens = searchQuery.trim().toLowerCase().split(/\s+/);
+        const regexConditions = tokens.map(token => ({
+          $or: [
+            { name: { $regex: token, $options: 'i' } },
+            { brand: { $regex: token, $options: 'i' } }
+          ]
+        }));
+        
+        // All tokens must match (AND condition)
+        foods = await mongo.foods.find({
+          $and: regexConditions
+        }).limit(maxResults).sort({ name: 1 }).toArray();
       } else {
-        // Return all foods if no search query
+        // Return limited results if no search query
         foods = await mongo.foods.find({}).limit(maxResults).sort({ name: 1 }).toArray();
       }
       

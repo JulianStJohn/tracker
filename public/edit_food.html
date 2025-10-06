@@ -60,27 +60,8 @@
                 <div class="form-group">
                     <label>Quantity Options</label>
                     <div id="quantities-container">
-                        <div class="quantity-row">
-                            <select class="quantity-name">
-                                <option value="">Select quantity type...</option>
-                                <option value="custom">custom</option>
-                                <option value="portion">portion</option>
-                                <option value="tsp">tsp</option>
-                                <option value="tbsp">tbsp</option>
-                                <option value="cup">cup</option>
-                            </select>
-                            <input type="number" placeholder="Weight (g)" class="quantity-weight" min="0">
-                            <div class="calories-input-group">
-                                <input type="number" placeholder="kJ/kCal" class="quantity-kcal" min="0">
-                                <select class="quantity-calories-unit">
-                                    <option value="kcal">kCal</option>
-                                    <option value="kj">kJ</option>
-                                </select>
-                            </div>
-                            <button type="button" class="remove-quantity-btn">-</button>
-                        </div>
+                        <!-- Quantity rows will be added dynamically by JavaScript -->
                     </div>
-                    <button type="button" id="add-quantity-btn">Add Quantity</button>
                 </div>
 
                 <div class="form-actions">
@@ -116,24 +97,33 @@
                 const predefinedOptions = ['portion', 'tsp', 'tbsp', 'cup'];
                 const isCustom = name && !predefinedOptions.includes(name);
                 
+                // Determine if this should be an "add" or "delete" button
+                const hasValues = name || weight || kcal;
+                const buttonClass = hasValues ? 'remove-quantity-btn' : 'add-quantity-btn';
+                const buttonText = hasValues ? 'Delete' : 'Add';
+                
                 $row.html(`
-                    <select class="quantity-name">
-                        <option value="">Select quantity type...</option>
-                        <option value="portion" ${name === 'portion' ? 'selected' : ''}>portion</option>
-                        <option value="tsp" ${name === 'tsp' ? 'selected' : ''}>tsp</option>
-                        <option value="tbsp" ${name === 'tbsp' ? 'selected' : ''}>tbsp</option>
-                        <option value="cup" ${name === 'cup' ? 'selected' : ''}>cup</option>
-                        <option value="custom" ${isCustom ? 'selected' : ''}>custom</option>
-                    </select>
-                    <input type="number" placeholder="Weight in grams" class="quantity-weight" min="0" value="${weight}">
-                    <div class="calories-input-group">
-                        <input type="number" placeholder="Calories (optional)" class="quantity-kcal" min="0" value="${kcal}">
-                        <select class="quantity-calories-unit">
-                            <option value="kcal">kcal</option>
-                            <option value="kj">kJ</option>
+                    <div class="quantity-type-weight-row">
+                        <select class="quantity-name">
+                            <option value="">Select quantity type...</option>
+                            <option value="portion" ${name === 'portion' ? 'selected' : ''}>portion</option>
+                            <option value="tsp" ${name === 'tsp' ? 'selected' : ''}>tsp</option>
+                            <option value="tbsp" ${name === 'tbsp' ? 'selected' : ''}>tbsp</option>
+                            <option value="cup" ${name === 'cup' ? 'selected' : ''}>cup</option>
+                            <option value="custom" ${isCustom ? 'selected' : ''}>custom</option>
                         </select>
+                        <input type="number" placeholder="Weight (g)" class="quantity-weight" min="0" value="${weight}">
                     </div>
-                    <button type="button" class="remove-quantity-btn">Remove</button>
+                    <div class="quantity-calories-action-row">
+                        <div class="calories-input-group">
+                            <input type="number" placeholder="kJ/kCal" class="quantity-kcal" min="0" value="${kcal}">
+                            <select class="quantity-calories-unit">
+                                <option value="kcal">kcal</option>
+                                <option value="kj">kJ</option>
+                            </select>
+                        </div>
+                        <button type="button" class="quantity-action-btn ${buttonClass}">${buttonText}</button>
+                    </div>
                 `);
                 
                 const $select = $row.find('.quantity-name');
@@ -150,9 +140,22 @@
                     }
                 });
                 
-                // Add remove functionality
-                $row.find('.remove-quantity-btn').on('click', function() {
-                    $row.remove();
+                // Add button functionality
+                const $actionBtn = $row.find('.quantity-action-btn');
+                $actionBtn.on('click', function() {
+                    if ($(this).hasClass('add-quantity-btn')) {
+                        // Convert to delete button and add a new empty row
+                        $(this).removeClass('add-quantity-btn').addClass('remove-quantity-btn').text('Delete');
+                        addQuantityRow(); // Add a new empty row
+                    } else {
+                        // Remove this row
+                        $row.remove();
+                        
+                        // Make sure there's always at least one row
+                        if ($('#quantities-container .quantity-row').length === 0) {
+                            addQuantityRow();
+                        }
+                    }
                 });
                 
                 $container.append($row);
@@ -195,22 +198,6 @@
                 $(textInput).replaceWith($select);
                 return $select[0];
             }
-
-            // Add quantity button
-            $('#add-quantity-btn').on('click', function() {
-                // Before adding new row, check if any existing rows have kcal values to calculate calories per 100g
-                calculateCaloriesFromQuantities();
-                
-                addQuantityRow();
-                
-                // Convert any text inputs back to selects after adding
-                $('.quantity-name[type="text"]').each(function() {
-                    if ($(this).val().trim()) {
-                        // Keep the custom value but convert back to select for consistency
-                        convertToSelect(this);
-                    }
-                });
-            });
 
             function calculateCaloriesFromQuantities() {
                 const $kcalPer100gField = $('#kcal-per-100g');
@@ -406,6 +393,8 @@
                             food.quantities.forEach(quantity => {
                                 addQuantityRow(quantity.name, quantity.weight);
                             });
+                            // Always add an empty row for adding new quantities
+                            addQuantityRow();
                         } else {
                             // Add at least one empty row if no quantities exist
                             addQuantityRow();
@@ -416,6 +405,9 @@
                         alert('Error loading food data: ' + (xhr.responseJSON?.error || error || 'Please try again.'));
                     }
                 });
+            } else {
+                // For new foods, initialize with one empty quantity row
+                addQuantityRow();
             }
         });
 
@@ -497,6 +489,19 @@
             align-items: center;
         }
 
+        .quantity-type-weight-row {
+            display: flex;
+            gap: 10px;
+            flex: 2;
+        }
+
+        .quantity-calories-action-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 2;
+        }
+
         .quantity-name {
             flex: 2;
             padding: 8px;
@@ -559,32 +564,32 @@
             box-shadow: 0 0 0 2px var(--yellow-faint);
         }
 
-        .remove-quantity-btn {
-            background-color: #dc3545;
-            color: white;
+        .quantity-action-btn {
             border: none;
             padding: 8px 12px;
             border-radius: 0.25rem;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 70px;
+        }
+
+        .add-quantity-btn {
+            background-color: var(--yellow-strongest);
+            color: black;
+        }
+
+        .add-quantity-btn:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        .remove-quantity-btn {
+            background-color: #dc3545;
+            color: white;
         }
 
         .remove-quantity-btn:hover {
             background-color: #c82333;
-        }
-
-        #add-quantity-btn {
-            background-color: var(--grey-two);
-            color: var(--grey-five);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        #add-quantity-btn:hover {
-            background-color: var(--grey-three);
         }
 
         .form-actions {
@@ -627,6 +632,27 @@
             .quantity-row {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 8px;
+            }
+            
+            .quantity-type-weight-row {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .quantity-calories-action-row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .calories-input-group {
+                flex: 1;
+            }
+            
+            .quantity-action-btn {
+                flex: 0 0 auto;
+                min-width: 80px;
             }
             
             .form-actions {

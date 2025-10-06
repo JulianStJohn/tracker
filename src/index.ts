@@ -16,6 +16,8 @@ import * as cors from "./cors.js"
 import { makeDayRouter } from "./day.js"
 import { makeFoodRouter } from "./food.js"
 import { makeMealRouter } from "./meals.js"
+import { makeRecipeRouter } from "./recipes.js"
+import { makeProgressRouter } from "./progress.js"
 import * as fs from 'fs'
 
 let openid_client_config: oc.Configuration;
@@ -62,6 +64,12 @@ app.use("/api/food", makeFoodRouter(mongo));
 
 // Add meal routes
 app.use("/api/meals", makeMealRouter(mongo));
+
+// Add recipe routes
+app.use("/api/recipes", makeRecipeRouter(mongo));
+
+// Add progress routes
+app.use("/api/progress", makeProgressRouter(mongo));
 
 // Serve static UI
 app.use(express.static(path.join(process.cwd(), "public")));

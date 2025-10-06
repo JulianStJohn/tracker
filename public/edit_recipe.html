@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Meal - Food Tracker</title>
+    <title>Edit Recipe - Food Tracker</title>
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <link rel="stylesheet" href="/css/tracker.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -12,34 +12,41 @@
     <div id="page-container">
         <div id="navbar-container"></div>
         <div class="header-section">
-            <h1 id="pageTitle">Create New Meal</h1>
+            <h1 id="pageTitle">Create New Recipe</h1>
             <div class="header-actions">
-                <a href="/meals.html" class="btn btn-outline">Back to Meals</a>
+                <a href="/recipes.html" class="btn btn-outline">Back to Recipes</a>
             </div>
         </div>
 
-        <form id="mealForm" class="meal-form">
-            <!-- Meal basic info -->
+        <form id="recipeForm" class="recipe-form">
+            <!-- Recipe basic info -->
             <div class="form-section">
-                <h2>Meal Information</h2>
+                <h2>Recipe Information</h2>
                 <div id="editModeIndicator" class="edit-mode-indicator" style="display: none;">
-                    <p><strong>Editing existing meal</strong> - Make your changes below</p>
+                    <p><strong>Editing existing recipe</strong> - Make your changes below</p>
                 </div>
                 
                 <div class="form-group">
-                    <label for="mealName">Meal Name *</label>
-                    <input type="text" id="mealName" required class="form-control" placeholder="Enter meal name">
+                    <label for="recipeName">Recipe Name *</label>
+                    <input type="text" id="recipeName" required class="form-control" placeholder="Enter recipe name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="recipePortions">Portions *</label>
+                        <input type="number" id="recipePortions" required class="form-control" placeholder="Number of portions" min="1" step="1" value="4">
+                    </div>
                 </div>
             </div>
 
             <!-- Food selection -->
             <div class="form-section">
-                <h2>Foods</h2>
-                <p class="section-description">Add foods to your meal. Search and select foods, then specify the weight for each.</p>
+                <h2>Ingredients</h2>
+                <p class="section-description">Add ingredients to your recipe. Search and select foods, then specify the weight for each.</p>
                 
                 <div class="add-food-section">
                     <div class="food-search-group">
-                        <input type="text" id="foodSearch" placeholder="Search for food..." class="form-control">
+                        <input type="text" id="foodSearch" placeholder="Search for ingredient..." class="form-control">
                         <button type="button" id="searchFoodBtn" class="btn btn-secondary">Search</button>
                     </div>
                     
@@ -49,23 +56,40 @@
                 </div>
 
                 <div id="selectedFoods" class="selected-foods">
-                    <h3>Selected Foods</h3>
+                    <h3>Selected Ingredients</h3>
                     <div id="selectedFoodsList" class="selected-foods-list">
-                        <p class="empty-message">No foods selected yet. Search and add foods above.</p>
+                        <p class="empty-message">No ingredients selected yet. Search and add ingredients above.</p>
                     </div>
                 </div>
 
                 <!-- Total calories display -->
                 <div class="total-calories">
-                    <h3>Total Calories: <span id="totalCalories">0</span> kcal</h3>
+                    <h3>Total Recipe Calories: <span id="totalCalories">0</span> kcal</h3>
+                    <p>Calories per portion: <span id="caloriesPerPortion">0</span> kcal</p>
+                </div>
+            </div>
+
+            <!-- Recipe steps -->
+            <div class="form-section">
+                <h2>Instructions</h2>
+                <p class="section-description">Write the recipe instructions (optional).</p>
+                
+                <div class="form-group">
+                    <label for="recipeSteps">Recipe Steps</label>
+                    <textarea id="recipeSteps" class="form-control" rows="8" placeholder="Enter recipe instructions...
+
+Example:
+1. Preheat oven to 180°C
+2. Mix all dry ingredients in a bowl
+3. Add wet ingredients and combine
+4. Bake for 25-30 minutes"></textarea>
                 </div>
             </div>
 
             <!-- Form actions -->
             <div class="form-actions">
                 <button type="button" id="cancelBtn" class="btn btn-outline">Cancel</button>
-                <button type="button" id="debugBtn" class="btn btn-secondary" onclick="console.log('Current selectedFoods:', selectedFoods)">Debug</button>
-                <button type="submit" id="submitBtn" class="btn btn-primary">Create Meal</button>
+                <button type="submit" id="submitBtn" class="btn btn-primary">Create Recipe</button>
             </div>
         </form>
     </div>
@@ -78,7 +102,7 @@
             margin-bottom: 2rem;
         }
 
-        .meal-form {
+        .recipe-form {
             max-width: 800px;
             margin: 0 auto;
         }
@@ -101,6 +125,15 @@
             margin-bottom: 1.5rem;
         }
 
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -118,6 +151,12 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
+        }
+
+        .form-control textarea {
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            line-height: 1.5;
         }
 
         .food-search-group {
@@ -284,10 +323,19 @@
         }
 
         .total-calories h3 {
-            margin: 0;
+            margin: 0 0 0.5rem 0;
             color: #28a745;
             font-size: 1.5rem;
         }
+
+        .total-calories p {
+            margin: 0;
+            color: #28a745;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+
 
         .form-actions {
             display: flex;
@@ -338,45 +386,32 @@
             .form-actions {
                 flex-direction: column;
             }
+
+            .form-row {
+                flex-direction: column;
+            }
         }
     </style>
 
     <script>
         let selectedFoods = [];
-        let editingMealId = null;
+        let editingRecipeId = null;
 
         $(document).ready(function() {
             loadNavbar();
             
-            // Check if we're editing an existing meal or a day meal
+            // Check if we're editing an existing recipe
             const urlParams = new URLSearchParams(window.location.search);
-            editingMealId = urlParams.get('edit');
-            const dayParam = urlParams.get('day');
-            const mealParam = urlParams.get('meal');
-            const action = urlParams.get('action');
+            editingRecipeId = urlParams.get('edit');
             
-            if (editingMealId) {
-                $('#pageTitle').text('Edit Meal');
-                $('#submitBtn').text('Update Meal');
+            if (editingRecipeId) {
+                $('#pageTitle').text('Edit Recipe');
+                $('#submitBtn').text('Update Recipe');
                 $('#editModeIndicator').show();
-                loadMealForEditing(editingMealId);
-            } else if (action === 'save-as-template' && dayParam && mealParam !== null) {
-                $('#pageTitle').text('Save Day Meal as Template');
-                $('#submitBtn').text('Save as Meal Template');
-                $('#editModeIndicator').show().find('p').html('<strong>Save as meal template</strong> - This will create a reusable meal from your day meal');
-                $('.header-actions').html(`<a href="/day.html?yyyymmdd=${dayParam}" class="btn btn-outline">Back to Day</a>`);
-                window.savingMealTemplate = { day: dayParam, meal: parseInt(mealParam) };
-                loadDayMealForEditing(dayParam, parseInt(mealParam));
-            } else if (dayParam && mealParam !== null) {
-                $('#pageTitle').text('Edit Day Meal');
-                $('#submitBtn').text('Save to Day');
-                $('#editModeIndicator').show().find('p').html('<strong>Editing day meal</strong> - Changes will be saved to your day');
-                $('.header-actions').html(`<a href="/day.html?yyyymmdd=${dayParam}" class="btn btn-outline">Back to Day</a>`);
-                window.editingDayMeal = { day: dayParam, meal: parseInt(mealParam) };
-                loadDayMealForEditing(dayParam, parseInt(mealParam));
+                loadRecipeForEditing(editingRecipeId);
             } else {
-                $('#pageTitle').text('Create New Meal');
-                $('#submitBtn').text('Create Meal');
+                $('#pageTitle').text('Create New Recipe');
+                $('#submitBtn').text('Create Recipe');
                 $('#editModeIndicator').hide();
             }
 
@@ -405,63 +440,64 @@
                 }
             });
 
+            // Update calories per portion when portions change
+            $('#recipePortions').on('input', updateCaloriesPerPortion);
+
             // Form submission
-            $('#mealForm').submit(function(e) {
+            $('#recipeForm').submit(function(e) {
                 e.preventDefault();
-                saveMeal();
+                saveRecipe();
             });
 
             // Cancel button
             $('#cancelBtn').click(function() {
-                window.location.href = '/meals.html';
+                window.location.href = '/recipes.html';
             });
         });
 
         function loadNavbar() {
             $.get('/_navbar.html', function(data) {
                 $('#navbar-container').html(data);
-                // Navbar will automatically set active tab based on current page
             }).fail(function() {
                 console.error('Failed to load navbar');
             });
         }
 
-        function loadMealForEditing(mealId) {
-            $.get(`/api/meals/${mealId}`)
-                .done(function(meal) {
-                    $('#mealName').val(meal.name);
+        function loadRecipeForEditing(recipeId) {
+            $.get(`/api/recipes/${encodeURIComponent(recipeId)}`)
+                .done(function(recipe) {
+                    $('#recipeName').val(recipe.name);
+                    $('#recipePortions').val(recipe.portions);
+                    $('#recipeSteps').val(recipe.steps);
                     
-                    // For editing, we need to look up the original food data to get quantities
-                    // We'll try to find the original foods to get quantity information
-                    const foodPromises = meal.foods.map(mealFood => {
-                        // Try to find the original food by name to get quantities
-                        return $.get(`/api/food/search?q=${encodeURIComponent(mealFood.title)}&limit=1`)
+                    // Load foods with quantity information
+                    const foodPromises = recipe.foods.map(recipeFood => {
+                        return $.get(`/api/food/search?q=${encodeURIComponent(recipeFood.title)}&limit=1`)
                             .then(foods => {
-                                const matchedFood = foods.find(f => f.name === mealFood.title);
+                                const matchedFood = foods.find(f => f.name === recipeFood.title);
                                 return {
                                     _id: matchedFood ? matchedFood._id : null,
-                                    title: mealFood.title,
+                                    title: recipeFood.title,
                                     brand: matchedFood ? (matchedFood.brand || '') : '',
-                                    kcal_per_100g: matchedFood ? matchedFood.kcal_per_100g : Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    kcal_per_100g: matchedFood ? matchedFood.kcal_per_100g : Math.round(recipeFood.kcal / (recipeFood.weight / 100)),
                                     quantities: matchedFood ? (matchedFood.quantities || []) : [],
-                                    weight: mealFood.weight,
-                                    kcal: mealFood.kcal,
-                                    quantity: mealFood.quantity || null,
-                                    quantity_type: mealFood.quantity_type || null
+                                    weight: recipeFood.weight,
+                                    kcal: recipeFood.kcal,
+                                    quantity: recipeFood.quantity || null,
+                                    quantity_type: recipeFood.quantity_type || null
                                 };
                             })
                             .catch(() => {
-                                // If search fails, use calculated values
                                 return {
                                     _id: null,
-                                    title: mealFood.title,
+                                    title: recipeFood.title,
                                     brand: '',
-                                    kcal_per_100g: Math.round(mealFood.kcal / (mealFood.weight / 100)),
+                                    kcal_per_100g: Math.round(recipeFood.kcal / (recipeFood.weight / 100)),
                                     quantities: [],
-                                    weight: mealFood.weight,
-                                    kcal: mealFood.kcal,
-                                    quantity: mealFood.quantity || null,
-                                    quantity_type: mealFood.quantity_type || null
+                                    weight: recipeFood.weight,
+                                    kcal: recipeFood.kcal,
+                                    quantity: recipeFood.quantity || null,
+                                    quantity_type: recipeFood.quantity_type || null
                                 };
                             });
                     });
@@ -473,8 +509,7 @@
                         })
                         .catch(error => {
                             console.error('Error loading food details:', error);
-                            // Fallback to basic data
-                            selectedFoods = meal.foods.map(food => ({
+                            selectedFoods = recipe.foods.map(food => ({
                                 _id: null,
                                 title: food.title,
                                 brand: '',
@@ -489,84 +524,9 @@
                         });
                 })
                 .fail(function(xhr) {
-                    console.error('Error loading meal:', xhr.responseText);
-                    alert('Error loading meal: ' + (xhr.responseJSON?.error || 'Unknown error'));
-                    window.location.href = '/meals.html';
-                });
-        }
-
-        function loadDayMealForEditing(dayParam, mealIndex) {
-            $.get(`/day/${dayParam}`)
-                .done(function(day) {
-                    if (!day.meals || mealIndex >= day.meals.length) {
-                        alert('Meal not found in day');
-                        window.location.href = `/day.html?yyyymmdd=${dayParam}`;
-                        return;
-                    }
-                    
-                    const dayMeal = day.meals[mealIndex];
-                    $('#mealName').val(dayMeal.title);
-                    
-                    // Convert day meal foods to the format expected by the editor
-                    const foodPromises = dayMeal.foods.map(mealFood => {
-                        // Try to find the original food by name to get quantities
-                        return $.get(`/api/food/search?q=${encodeURIComponent(mealFood.title)}&limit=1`)
-                            .then(foods => {
-                                const matchedFood = foods.find(f => f.name === mealFood.title);
-                                return {
-                                    _id: matchedFood ? matchedFood._id : null,
-                                    title: mealFood.title,
-                                    brand: mealFood.brand || (matchedFood ? (matchedFood.brand || '') : ''),
-                                    kcal_per_100g: matchedFood ? matchedFood.kcal_per_100g : Math.round(mealFood.kcal / (mealFood.weight / 100)),
-                                    quantities: matchedFood ? (matchedFood.quantities || []) : [],
-                                    weight: mealFood.weight,
-                                    kcal: mealFood.kcal,
-                                    quantity: mealFood.quantity || null,
-                                    quantity_type: mealFood.quantity_type || null
-                                };
-                            })
-                            .catch(() => {
-                                // If search fails, use calculated values
-                                return {
-                                    _id: null,
-                                    title: mealFood.title,
-                                    brand: mealFood.brand || '',
-                                    kcal_per_100g: Math.round(mealFood.kcal / (mealFood.weight / 100)),
-                                    quantities: [],
-                                    weight: mealFood.weight,
-                                    kcal: mealFood.kcal,
-                                    quantity: mealFood.quantity || null,
-                                    quantity_type: mealFood.quantity_type || null
-                                };
-                            });
-                    });
-                    
-                    Promise.all(foodPromises)
-                        .then(foods => {
-                            selectedFoods = foods;
-                            updateSelectedFoodsDisplay();
-                        })
-                        .catch(error => {
-                            console.error('Error loading food details:', error);
-                            // Fallback to basic data
-                            selectedFoods = dayMeal.foods.map(food => ({
-                                _id: null,
-                                title: food.title,
-                                brand: food.brand || '',
-                                kcal_per_100g: Math.round(food.kcal / (food.weight / 100)),
-                                quantities: [],
-                                weight: food.weight,
-                                kcal: food.kcal,
-                                quantity: food.quantity || null,
-                                quantity_type: food.quantity_type || null
-                            }));
-                            updateSelectedFoodsDisplay();
-                        });
-                })
-                .fail(function(xhr) {
-                    console.error('Error loading day:', xhr.responseText);
-                    alert('Error loading day: ' + (xhr.responseJSON?.error || 'Unknown error'));
-                    window.location.href = `/day.html?yyyymmdd=${dayParam}`;
+                    console.error('Error loading recipe:', xhr.responseText);
+                    alert('Error loading recipe: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                    window.location.href = '/recipes.html';
                 });
         }
 
@@ -614,26 +574,23 @@
         }
 
         function selectFood(foodId) {
-            // Get the food details and add to selected foods
             $.get(`/api/food/${foodId}`)
                 .done(function(food) {
-                    // Check if food is already selected
                     if (selectedFoods.some(f => f._id === food._id)) {
-                        alert('This food is already added to the meal.');
+                        alert('This ingredient is already added to the recipe.');
                         return;
                     }
 
-                    // Add to selected foods with default weight
                     selectedFoods.push({
                         _id: food._id,
                         title: food.name,
                         brand: food.brand || '',
                         kcal_per_100g: food.kcal_per_100g,
-                        quantities: food.quantities || [], // Include quantities from food
-                        weight: 100, // Default weight
-                        kcal: Math.round(food.kcal_per_100g * 1), // 100g = 1 * 100g
-                        quantity: null, // No quantity multiplier initially
-                        quantity_type: null // No quantity type initially
+                        quantities: food.quantities || [],
+                        weight: 100,
+                        kcal: Math.round(food.kcal_per_100g * 1),
+                        quantity: null,
+                        quantity_type: null
                     });
 
                     updateSelectedFoodsDisplay();
@@ -650,16 +607,14 @@
             const container = $('#selectedFoodsList');
             
             if (selectedFoods.length === 0) {
-                container.html('<p class="empty-message">No foods selected yet. Search and add foods above.</p>');
+                container.html('<p class="empty-message">No ingredients selected yet. Search and add ingredients above.</p>');
             } else {
                 let html = '';
                 selectedFoods.forEach((food, index) => {
-                    // Check if food has quantities or has saved quantity information
                     const hasQuantities = food.quantities && food.quantities.length > 0;
                     const hasSavedQuantity = food.quantity || food.quantity_type;
                     const showQuantityControls = hasQuantities || hasSavedQuantity;
                     
-                    // Build quantity dropdown options
                     let quantityOptions = '<option value="">Select quantity</option>';
                     if (hasQuantities) {
                         food.quantities.forEach(qty => {
@@ -667,7 +622,6 @@
                             quantityOptions += `<option value="${qty.weight}" ${selected}>${escapeHtml(qty.name)} (${qty.weight}g)</option>`;
                         });
                     } else if (food.quantity_type) {
-                        // If we have a saved quantity type but no predefined quantities, show it as a custom option
                         quantityOptions += `<option value="" selected>${escapeHtml(food.quantity_type)} (custom)</option>`;
                     }
                     
@@ -716,32 +670,23 @@
         function updateQuantityCalculation(index) {
             const foodItem = $('.selected-food-item').eq(index);
             const multiplier = parseFloat(foodItem.find('.quantity-multiplier').val()) || null;
-            const selectedQuantityOption = foodItem.find('.quantity-selector option:selected');
             const selectedQuantityWeight = parseInt(foodItem.find('.quantity-selector').val()) || 0;
             
-            // Always store the multiplier value (even if no quantity type is selected)
             selectedFoods[index].quantity = multiplier;
             
             if (selectedQuantityWeight > 0 && multiplier) {
-                // Find the quantity type name from the food's quantities array
                 const matchingQuantity = selectedFoods[index].quantities.find(q => q.weight === selectedQuantityWeight);
-                const quantityTypeName = matchingQuantity ? matchingQuantity.name : selectedQuantityOption.text().split(' (')[0];
+                const quantityTypeName = matchingQuantity ? matchingQuantity.name : '';
                 selectedFoods[index].quantity_type = quantityTypeName;
                 
                 const newWeight = Math.round(multiplier * selectedQuantityWeight);
                 selectedFoods[index].weight = newWeight;
                 selectedFoods[index].kcal = Math.round(selectedFoods[index].kcal_per_100g * (newWeight / 100));
                 
-                // Update the weight input to reflect the calculated weight
                 foodItem.find('.weight-input').val(newWeight);
-                
                 updateSelectedFoodsDisplay();
             } else {
-                // Clear quantity type if no valid quantity is selected
                 selectedFoods[index].quantity_type = null;
-                
-                // If only multiplier is entered without selecting a quantity type, 
-                // we still store the multiplier but don't auto-calculate weight
                 if (!multiplier) {
                     selectedFoods[index].quantity = null;
                 }
@@ -755,8 +700,6 @@
             selectedFoods[index].weight = weight;
             selectedFoods[index].kcal = Math.round(selectedFoods[index].kcal_per_100g * (weight / 100));
             
-            // Clear quantity information when weight is manually changed
-            // (unless it matches the current quantity calculation)
             const currentQuantity = selectedFoods[index].quantity;
             const currentQuantityType = selectedFoods[index].quantity_type;
             if (currentQuantity && currentQuantityType) {
@@ -781,194 +724,87 @@
         function updateTotalCalories() {
             const total = selectedFoods.reduce((sum, food) => sum + food.kcal, 0);
             $('#totalCalories').text(total);
+            updateCaloriesPerPortion();
         }
 
-        function saveMeal() {
-            const mealName = $('#mealName').val().trim();
+        function updateCaloriesPerPortion() {
+            const total = selectedFoods.reduce((sum, food) => sum + food.kcal, 0);
+            const portions = parseInt($('#recipePortions').val()) || 1;
+            const perPortion = Math.round(total / portions);
+            $('#caloriesPerPortion').text(perPortion);
+        }
+
+        function saveRecipe() {
+            const recipeName = $('#recipeName').val().trim();
+            const recipeSteps = $('#recipeSteps').val().trim();
+            const recipePortions = parseInt($('#recipePortions').val()) || 1;
             
-            if (!mealName) {
-                alert('Please enter a meal name.');
+            if (!recipeName) {
+                alert('Please enter a recipe name.');
                 return;
             }
 
-            // Allow saving meals with no foods (removed validation)
-            // if (selectedFoods.length === 0) {
-            //     alert('Please add at least one food to the meal.');
-            //     return;
-            // }
-
-            // Check if we're saving as template or editing a day meal
-            if (window.savingMealTemplate) {
-                saveMealAsTemplate(mealName);
-                return;
-            } else if (window.editingDayMeal) {
-                saveDayMeal(mealName);
+            if (!recipeSteps) {
+                alert('Please enter recipe instructions.');
                 return;
             }
 
-            const mealData = {
-                name: mealName,
+            if (recipePortions <= 0) {
+                alert('Please enter a valid number of portions.');
+                return;
+            }
+
+            if (selectedFoods.length === 0) {
+                alert('Please add at least one ingredient to the recipe.');
+                return;
+            }
+
+            const recipeData = {
+                name: recipeName,
                 foods: selectedFoods.map(food => {
-                    console.log('Processing food for save:', food);
                     const foodItem = {
                         title: food.title,
                         kcal: food.kcal,
                         weight: food.weight
                     };
                     
-                    // Include brand if available
                     if (food.brand) {
                         foodItem.brand = food.brand;
                     }
                     
-                    // Include quantity information if available
                     if (food.quantity !== null && food.quantity !== undefined) {
                         foodItem.quantity = food.quantity;
-                        console.log('Added quantity:', food.quantity);
                     }
                     if (food.quantity_type) {
                         foodItem.quantity_type = food.quantity_type;
-                        console.log('Added quantity_type:', food.quantity_type);
                     }
                     
                     return foodItem;
-                })
+                }),
+                steps: recipeSteps,
+                portions: recipePortions
             };
 
-            console.log('Saving meal:', mealData);
+            console.log('Saving recipe:', recipeData);
 
-            const url = editingMealId ? `/api/meals/${editingMealId}` : '/api/meals';
-            const method = editingMealId ? 'PUT' : 'POST';
+            const url = editingRecipeId ? `/api/recipes/${encodeURIComponent(editingRecipeId)}` : '/api/recipes';
+            const method = editingRecipeId ? 'PUT' : 'POST';
 
             $.ajax({
                 url: url,
                 method: method,
                 contentType: 'application/json',
-                data: JSON.stringify(mealData),
+                data: JSON.stringify(recipeData),
                 success: function(response) {
-                    console.log('Meal saved successfully:', response);
-                    const action = editingMealId ? 'updated' : 'created';
-                    // Could show a success message here before redirecting
-                    window.location.href = '/meals.html';
+                    console.log('Recipe saved successfully:', response);
+                    window.location.href = '/recipes.html';
                 },
                 error: function(xhr) {
-                    console.error('Error saving meal:', xhr.responseText);
+                    console.error('Error saving recipe:', xhr.responseText);
                     const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
-                    alert('Error saving meal: ' + errorMsg);
+                    alert('Error saving recipe: ' + errorMsg);
                 }
             });
-        }
-
-        function saveMealAsTemplate(mealName) {
-            const mealData = {
-                name: mealName,
-                foods: selectedFoods.map(food => {
-                    console.log('Processing food for template save:', food);
-                    const foodItem = {
-                        title: food.title,
-                        kcal: food.kcal,
-                        weight: food.weight
-                    };
-                    
-                    // Include brand if available
-                    if (food.brand) {
-                        foodItem.brand = food.brand;
-                    }
-                    
-                    // Include quantity information if available
-                    if (food.quantity !== null && food.quantity !== undefined) {
-                        foodItem.quantity = food.quantity;
-                    }
-                    if (food.quantity_type) {
-                        foodItem.quantity_type = food.quantity_type;
-                    }
-                    
-                    return foodItem;
-                })
-            };
-
-            console.log('Saving meal template:', mealData);
-
-            $.ajax({
-                url: '/api/meals',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(mealData),
-                success: function(response) {
-                    console.log('Meal template saved successfully:', response);
-                    alert(`Meal template "${mealName}" saved successfully!`);
-                    const dayParam = window.savingMealTemplate.day;
-                    window.location.href = `/day.html?yyyymmdd=${dayParam}`;
-                },
-                error: function(xhr) {
-                    console.error('Error saving meal template:', xhr.responseText);
-                    const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
-                    alert('Error saving meal template: ' + errorMsg);
-                }
-            });
-        }
-
-        function saveDayMeal(mealName) {
-            const dayParam = window.editingDayMeal.day;
-            const mealIndex = window.editingDayMeal.meal;
-            
-            console.log(`Saving day meal ${mealIndex} for day ${dayParam}`);
-
-            // First get the current day to preserve other meals
-            $.get(`/day/${dayParam}`)
-                .done(function(day) {
-                    // Update the specific meal
-                    const updatedMeal = {
-                        title: mealName.toLowerCase(),
-                        foods: selectedFoods.map(food => {
-                            const foodItem = {
-                                title: food.title,
-                                kcal: food.kcal,
-                                weight: food.weight
-                            };
-                            
-                            // Include brand if available
-                            if (food.brand) {
-                                foodItem.brand = food.brand;
-                            }
-                            
-                            // Include quantity information if available
-                            if (food.quantity !== null && food.quantity !== undefined) {
-                                foodItem.quantity = food.quantity;
-                            }
-                            if (food.quantity_type) {
-                                foodItem.quantity_type = food.quantity_type;
-                            }
-                            
-                            return foodItem;
-                        })
-                    };
-
-                    // Update the meals array
-                    const updatedMeals = [...day.meals];
-                    updatedMeals[mealIndex] = updatedMeal;
-
-                    // Save back to the day
-                    $.ajax({
-                        url: `/day/${dayParam}`,
-                        method: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ meals: updatedMeals }),
-                        success: function(response) {
-                            console.log('Day meal saved successfully:', response);
-                            window.location.href = `/day.html?yyyymmdd=${dayParam}`;
-                        },
-                        error: function(xhr) {
-                            console.error('Error saving day meal:', xhr.responseText);
-                            const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
-                            alert('Error saving day meal: ' + errorMsg);
-                        }
-                    });
-                })
-                .fail(function(xhr) {
-                    console.error('Error loading day for update:', xhr.responseText);
-                    alert('Error loading day: ' + (xhr.responseJSON?.error || 'Unknown error'));
-                });
         }
 
         function escapeHtml(text) {
@@ -977,6 +813,5 @@
             return div.innerHTML;
         }
     </script>
-    </div>
 </body>
 </html>

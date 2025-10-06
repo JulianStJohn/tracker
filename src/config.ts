@@ -9,6 +9,8 @@ import cookieParser from "cookie-parser";
 import * as oc from "openid-client";
 import { createRemoteJWKSet, jwtVerify, errors, type JWTPayload } from "jose";
 import util from "node:util";
+import * as yaml from 'js-yaml';
+import * as fs from 'node:fs';
 
 
 
@@ -62,3 +64,27 @@ export const REDIRECT_URI = `${process.env.APP_BASE_URL}/callback`;
 // Build URLs from domain
 export const OIDC_ISSUER_URL = `https://${COGNITO_DOMAIN}`;
 export const LOGOUT_REDIRECT_URI = `${APP_BASE_URL}/logged-out`;
+
+// Load application configuration from config.yml
+interface AppConfig {
+  goals: {
+    daily_kcal: number;
+  };
+}
+
+let appConfig: AppConfig;
+
+try {
+  const configPath = path.join(process.cwd(), 'config.yml');
+  const configFile = fs.readFileSync(configPath, 'utf8');
+  appConfig = yaml.load(configFile) as AppConfig;
+} catch (error) {
+  console.warn('Failed to load config.yml, using defaults:', error);
+  appConfig = {
+    goals: {
+      daily_kcal: 2000
+    }
+  };
+}
+
+export { appConfig };

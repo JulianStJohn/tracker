@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Recipe - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+        <div class="header-section">
+            <h1 id="pageTitle">Make Recipe</h1>
+            <div class="header-actions">
+                <a href="/recipes.html" class="btn btn-outline">Back to Recipes</a>
+            </div>
+        </div>
+
+        <div id="recipeContainer" class="recipe-container">
+            <!-- Recipe will be loaded here -->
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="loading" class="loading" style="display: none;">
+            <p>Loading recipe...</p>
+        </div>
+
+        <!-- Recipe not found -->
+        <div id="notFound" class="empty-state" style="display: none;">
+            <p>Recipe not found.</p>
+            <a href="/recipes.html" class="btn btn-primary">Back to Recipes</a>
+        </div>
+    </div>
+
+    <style>
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .recipe-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .recipe-header {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .recipe-title {
+            font-size: 2rem;
+            color: #333;
+            margin: 0 0 1rem 0;
+        }
+
+        .recipe-info {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .recipe-portions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recipe-portions label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .recipe-portions input {
+            width: 4rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .recipe-calories {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .recipe-steps {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .recipe-steps h2 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .recipe-steps-content {
+            line-height: 1.6;
+            color: #555;
+            white-space: pre-wrap;
+        }
+
+        .ingredients-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .ingredients-section h2 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .ingredients-list {
+            margin-bottom: 2rem;
+        }
+
+        .ingredient-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+        }
+
+        .ingredient-info {
+            flex: 1;
+        }
+
+        .ingredient-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .ingredient-brand {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-base-calories {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quantity-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+        }
+
+        .quantity-multiplier {
+            width: 3rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .quantity-type {
+            font-size: 0.9rem;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .portion-multiplier {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .portion-multiplier label {
+            font-size: 0.9rem;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .portion-input {
+            width: 3rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-weight {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .weight-input {
+            width: 4rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-calories {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .total-calories {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .total-calories h3 {
+            margin: 0;
+            color: #28a745;
+            font-size: 1.5rem;
+        }
+
+        .save-meal-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .save-meal-section h2 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .meal-name-preview {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            color: #666;
+        }
+
+        .save-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .recipe-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .ingredient-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .ingredient-controls {
+                margin: 0;
+                justify-content: flex-start;
+                gap: 0.5rem;
+            }
+
+            .quantity-display {
+                min-width: auto;
+            }
+
+            .save-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        let currentRecipe = null;
+        let adjustedIngredients = [];
+
+        $(document).ready(function() {
+            loadNavbar();
+            
+            // Get recipe from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const recipeName = urlParams.get('recipe');
+            
+            if (recipeName) {
+                loadRecipe(recipeName);
+            } else {
+                $('#notFound').show();
+            }
+
+            // Update portions when changed
+            $(document).on('change', '#adjustedPortions', updatePortions);
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+
+        function loadRecipe(recipeName) {
+            $('#loading').show();
+            $('#recipeContainer').hide();
+            $('#notFound').hide();
+
+            $.get(`/api/recipes/${encodeURIComponent(recipeName)}`)
+                .done(function(recipe) {
+                    currentRecipe = recipe;
+                    // Initialize adjusted ingredients with original portions
+                    adjustedIngredients = recipe.foods.map(food => ({
+                        ...food,
+                        adjustedWeight: food.weight,
+                        adjustedKcal: food.kcal,
+                        portionMultiplier: 1
+                    }));
+                    displayRecipe();
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading recipe:', xhr.responseText);
+                    $('#notFound').show();
+                })
+                .always(function() {
+                    $('#loading').hide();
+                });
+        }
+
+        function displayRecipe() {
+            if (!currentRecipe) return;
+
+            const container = $('#recipeContainer');
+            $('#pageTitle').text(`Make Recipe: ${currentRecipe.name}`);
+            
+            const html = `
+                <div class="recipe-header">
+                    <h1 class="recipe-title">${escapeHtml(currentRecipe.name)}</h1>
+                    <div class="recipe-info">
+                        <div class="recipe-portions">
+                            <label for="adjustedPortions">Portions:</label>
+                            <input type="number" id="adjustedPortions" value="${currentRecipe.portions}" min="0.1" step="0.1">
+                        </div>
+                        <div class="recipe-calories">
+                            <span id="totalCaloriesDisplay">${currentRecipe.total_kcal}</span> kcal total
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recipe-steps">
+                    <h2>Instructions</h2>
+                    <div class="recipe-steps-content">${escapeHtml(currentRecipe.steps)}</div>
+                </div>
+
+                <div class="ingredients-section">
+                    <h2>Ingredients</h2>
+                    <div class="ingredients-list" id="ingredientsList">
+                        <!-- Ingredients will be populated here -->
+                    </div>
+                    
+                    <div class="total-calories">
+                        <h3>Adjusted Total: <span id="adjustedTotalCalories">${currentRecipe.total_kcal}</span> kcal</h3>
+                    </div>
+                </div>
+
+                <div class="save-meal-section">
+                    <h2>Save as Meal</h2>
+                    <p>Save this recipe with your adjusted portions as a meal template:</p>
+                    <div class="meal-name-preview" id="mealNamePreview">
+                        ${escapeHtml(currentRecipe.name)} - ${formatDateForMeal()}
+                    </div>
+                    <div class="save-actions">
+                        <button type="button" id="saveMealBtn" class="btn btn-primary">Save as Meal</button>
+                    </div>
+                </div>
+            `;
+
+            container.html(html).show();
+            updateIngredientsDisplay();
+
+            // Bind save meal button
+            $('#saveMealBtn').click(saveMealFromRecipe);
+        }
+
+        function updateIngredientsDisplay() {
+            const container = $('#ingredientsList');
+            let html = '';
+
+            adjustedIngredients.forEach((ingredient, index) => {
+                // Check if ingredient has quantity information
+                const hasQuantity = ingredient.quantity_type && (ingredient.quantity !== null && ingredient.quantity !== undefined);
+                
+                html += `
+                    <div class="ingredient-item">
+                        <div class="ingredient-info">
+                            <div class="ingredient-name">${escapeHtml(ingredient.title)}</div>
+                            ${ingredient.brand ? `<div class="ingredient-brand">${escapeHtml(ingredient.brand)}</div>` : ''}
+                            <div class="ingredient-base-calories">${Math.round(ingredient.kcal / (ingredient.weight / 100))} kcal per 100g</div>
+                        </div>
+                        
+                        <div class="ingredient-controls">
+                            ${hasQuantity ? `
+                                <div class="quantity-display">
+                                    <input type="number" 
+                                           class="quantity-multiplier" 
+                                           value="${getAdjustedQuantity(ingredient)}" 
+                                           min="0.1" 
+                                           step="0.1"
+                                           onchange="updateIngredientQuantity(${index}, this.value)">
+                                    <span class="quantity-type">${escapeHtml(ingredient.quantity_type)}</span>
+                                </div>
+                            ` : `
+                                <div class="portion-multiplier">
+                                    <label>×</label>
+                                    <input type="number" 
+                                           class="portion-input" 
+                                           value="${ingredient.portionMultiplier}" 
+                                           min="0.1" 
+                                           step="0.1"
+                                           onchange="updateIngredientPortion(${index}, this.value)">
+                                </div>
+                            `}
+                            
+                            <div class="ingredient-weight">
+                                <input type="number" 
+                                       class="weight-input" 
+                                       value="${ingredient.adjustedWeight}" 
+                                       min="1" 
+                                       step="1"
+                                       onchange="updateIngredientWeight(${index}, this.value)">
+                                <span>g</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ingredient-calories">${ingredient.adjustedKcal} kcal</div>
+                    </div>
+                `;
+            });
+
+            container.html(html);
+            updateTotalCalories();
+        }
+
+        function updatePortions() {
+            const newPortions = parseFloat($('#adjustedPortions').val()) || 1;
+            const originalPortions = currentRecipe.portions;
+            const multiplier = newPortions / originalPortions;
+
+            // Update all ingredients proportionally
+            adjustedIngredients = currentRecipe.foods.map(food => ({
+                ...food,
+                adjustedWeight: Math.round(food.weight * multiplier),
+                adjustedKcal: Math.round(food.kcal * multiplier),
+                portionMultiplier: multiplier
+            }));
+
+            updateIngredientsDisplay();
+        }
+
+        function getAdjustedQuantity(ingredient) {
+            if (ingredient.quantity === null || ingredient.quantity === undefined) {
+                return 1;
+            }
+            return Math.round(ingredient.quantity * ingredient.portionMultiplier * 10) / 10;
+        }
+
+        function updateIngredientQuantity(index, newQuantity) {
+            const quantity = parseFloat(newQuantity) || 0.1;
+            const originalFood = currentRecipe.foods[index];
+            const ingredient = adjustedIngredients[index];
+            
+            if (originalFood.quantity && originalFood.quantity_type) {
+                // Find the original quantity weight from the recipe
+                const baseQuantityWeight = getQuantityWeight(originalFood);
+                if (baseQuantityWeight > 0) {
+                    // Calculate new weight based on quantity multiplier
+                    const newWeight = Math.round(quantity * baseQuantityWeight);
+                    const kcalPer100g = Math.round(originalFood.kcal / (originalFood.weight / 100));
+                    
+                    ingredient.adjustedWeight = newWeight;
+                    ingredient.adjustedKcal = Math.round(kcalPer100g * (newWeight / 100));
+                    ingredient.portionMultiplier = newWeight / originalFood.weight;
+                    
+                    updateIngredientsDisplay();
+                }
+            }
+        }
+
+        function getQuantityWeight(food) {
+            // If we have quantity information, calculate the weight per unit
+            if (food.quantity && food.weight) {
+                return food.weight / food.quantity;
+            }
+            return 0;
+        }
+
+        function updateIngredientPortion(index, multiplier) {
+            const mult = parseFloat(multiplier) || 0.1;
+            const originalFood = currentRecipe.foods[index];
+            
+            adjustedIngredients[index].portionMultiplier = mult;
+            adjustedIngredients[index].adjustedWeight = Math.round(originalFood.weight * mult);
+            adjustedIngredients[index].adjustedKcal = Math.round(originalFood.kcal * mult);
+            
+            updateIngredientsDisplay();
+        }
+
+        function updateIngredientWeight(index, newWeight) {
+            const weight = parseInt(newWeight) || 1;
+            const originalFood = currentRecipe.foods[index];
+            const ingredient = adjustedIngredients[index];
+            const kcalPer100g = Math.round(originalFood.kcal / (originalFood.weight / 100));
+            
+            ingredient.adjustedWeight = weight;
+            ingredient.adjustedKcal = Math.round(kcalPer100g * (weight / 100));
+            ingredient.portionMultiplier = weight / originalFood.weight;
+            
+            // If this ingredient has quantity information, update the quantity multiplier
+            if (originalFood.quantity && originalFood.quantity_type) {
+                const baseQuantityWeight = getQuantityWeight(originalFood);
+                if (baseQuantityWeight > 0) {
+                    const newQuantityMultiplier = weight / baseQuantityWeight;
+                    // The quantity multiplier will be recalculated in the display
+                }
+            }
+            
+            updateIngredientsDisplay();
+        }
+
+        function updateTotalCalories() {
+            const total = adjustedIngredients.reduce((sum, ingredient) => sum + ingredient.adjustedKcal, 0);
+            $('#adjustedTotalCalories').text(total);
+            $('#totalCaloriesDisplay').text(total);
+        }
+
+        function formatDateForMeal() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = String(now.getFullYear()).slice(-2);
+            return `${day}.${month}.${year}`;
+        }
+
+        function saveMealFromRecipe() {
+            if (!currentRecipe || adjustedIngredients.length === 0) {
+                alert('No recipe data to save.');
+                return;
+            }
+
+            const mealName = `${currentRecipe.name} - ${formatDateForMeal()}`;
+            const adjustedPortions = parseFloat($('#adjustedPortions').val()) || currentRecipe.portions;
+            
+            // Prepare meal data with adjusted ingredients divided by portions (to save one portion)
+            const mealData = {
+                name: mealName,
+                foods: adjustedIngredients.map(ingredient => {
+                    const weightPerPortion = Math.round(ingredient.adjustedWeight / adjustedPortions);
+                    const kcalPerPortion = Math.round(ingredient.adjustedKcal / adjustedPortions);
+                    
+                    const foodItem = {
+                        title: ingredient.title,
+                        kcal: kcalPerPortion,
+                        weight: weightPerPortion
+                    };
+                    
+                    if (ingredient.brand) {
+                        foodItem.brand = ingredient.brand;
+                    }
+                    
+                    if (ingredient.quantity !== null && ingredient.quantity !== undefined) {
+                        // Adjust quantity per portion
+                        const quantityPerPortion = (ingredient.quantity * ingredient.portionMultiplier) / adjustedPortions;
+                        foodItem.quantity = Math.round(quantityPerPortion * 10) / 10;
+                    }
+                    if (ingredient.quantity_type) {
+                        foodItem.quantity_type = ingredient.quantity_type;
+                    }
+                    
+                    return foodItem;
+                })
+            };
+
+            console.log('Saving meal from recipe (one portion):', mealData);
+
+            $.ajax({
+                url: '/api/meals',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(mealData),
+                success: function(response) {
+                    console.log('Meal saved successfully:', response);
+                    
+                    // Update recipe last used date
+                    $.ajax({
+                        url: `/api/recipes/${encodeURIComponent(currentRecipe.name)}`,
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ date_last_used: new Date() }),
+                        complete: function() {
+                            alert(`Meal "${mealName}" created successfully!`);
+                            window.location.href = '/meals.html';
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Error saving meal:', xhr.responseText);
+                    const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
+                    alert('Error saving meal: ' + errorMsg);
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

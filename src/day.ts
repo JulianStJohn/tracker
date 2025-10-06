@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { MongoStore } from "./mongo";
 import { Day, MealItem, FoodItem } from "./types/collections.js";
+import { appConfig } from "./config.js";
 
 // Helper function to create default empty meals
 function createDefaultMeals(): MealItem[] {
@@ -32,7 +33,8 @@ export function makeDayRouter(mongo: MongoStore): Router {
       if (!day) {
         const newDay = {
           yyyymmdd,
-          meals: createDefaultMeals()
+          meals: createDefaultMeals(),
+          goal_kcal: appConfig.goals.daily_kcal
         };
         
         const result = await mongo.days.insertOne(newDay);
@@ -68,7 +70,8 @@ export function makeDayRouter(mongo: MongoStore): Router {
       if (!day) {
         const newDay = {
           yyyymmdd,
-          meals: createDefaultMeals()
+          meals: createDefaultMeals(),
+          goal_kcal: appConfig.goals.daily_kcal
         };
         
         const result = await mongo.days.insertOne(newDay);
@@ -103,7 +106,8 @@ export function makeDayRouter(mongo: MongoStore): Router {
       if (!day) {
         const newDay = {
           yyyymmdd,
-          meals: createDefaultMeals()
+          meals: createDefaultMeals(),
+          goal_kcal: appConfig.goals.daily_kcal
         };
         const result = await mongo.days.insertOne(newDay);
         day = await mongo.days.findOne({ _id: result.insertedId });

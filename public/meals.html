@@ -79,36 +79,46 @@
         }
 
         .meals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .meal-card {
             background: white;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: box-shadow 0.2s;
+            overflow: hidden;
         }
 
         .meal-card:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
+        .meal-summary {
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .meal-summary:hover {
+            background-color: #f8f9fa;
+        }
+
         .meal-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .meal-name {
             font-size: 1.25rem;
             font-weight: bold;
             color: #333;
-            margin: 0 0 0.5rem 0;
+            margin: 0;
         }
 
         .meal-calories {
@@ -116,6 +126,36 @@
             font-weight: bold;
             color: #e74c3c;
             white-space: nowrap;
+        }
+
+        .meal-summary-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .meal-summary-info {
+            font-size: 0.9rem;
+            color: #666;
+            flex: 1;
+        }
+
+        .meal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            flex-shrink: 0;
+        }
+
+        .meal-details {
+            display: none;
+            padding: 0 1.5rem 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .meal-card.expanded .meal-details {
+            display: block;
         }
 
         .meal-dates {
@@ -153,15 +193,36 @@
             margin-left: 0.5rem;
         }
 
-        .meal-actions {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-        }
-
         .btn-small {
             padding: 0.4rem 0.8rem;
             font-size: 0.85rem;
+        }
+
+        .btn-edit {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-use {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-use:hover {
+            background-color: #218838;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
         }
 
         .loading {
@@ -189,15 +250,29 @@
             }
 
             .meals-grid {
-                grid-template-columns: 1fr;
+                gap: 0.75rem;
             }
 
             .search-group {
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.5rem;
             }
 
             .search-input {
-                margin-bottom: 0.5rem;
+                flex: 1;
+                min-width: 200px;
+                margin-bottom: 0;
+            }
+
+            .meal-summary-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+
+            .meal-actions {
+                justify-content: flex-start;
             }
         }
     </style>
@@ -207,7 +282,19 @@ $(document).ready(function() {
     loadNavbar();
     loadMeals();
 
-    // Search functionality
+    // Search functionality with real-time search
+    let searchTimeout;
+    
+    $('#searchInput').on('input', function() {
+        clearTimeout(searchTimeout);
+        const query = $(this).val().trim();
+        
+        // Debounce search by 300ms to avoid too many requests
+        searchTimeout = setTimeout(() => {
+            loadMeals(query);
+        }, 300);
+    });
+
     $('#searchBtn').click(function() {
         const query = $('#searchInput').val().trim();
         loadMeals(query);
@@ -295,8 +382,7 @@ function loadNavbar() {
             
             let foodsHtml = '';
             if (meal.foods && meal.foods.length > 0) {
-                const displayFoods = meal.foods.slice(0, 3); // Show max 3 foods
-                displayFoods.forEach(food => {
+                meal.foods.forEach(food => {
                     foodsHtml += `
                         <div class="food-item">
                             <span class="food-title">${escapeHtml(food.title)}</span>
@@ -304,37 +390,49 @@ function loadNavbar() {
                         </div>
                     `;
                 });
-                if (meal.foods.length > 3) {
-                    foodsHtml += `<div class="food-item"><em>+${meal.foods.length - 3} more items</em></div>`;
-                }
             } else {
                 foodsHtml = '<div class="food-item"><em>No foods added</em></div>';
             }
 
             return `
-                <div class="meal-card">
-                    <div class="meal-header">
-                        <h3 class="meal-name">${escapeHtml(meal.name)}</h3>
-                        <div class="meal-calories">${meal.total_kcal} kcal</div>
+                <div class="meal-card" data-meal-id="${meal._id}">
+                    <div class="meal-summary" onclick="toggleMealDetails('${meal._id}')">
+                        <div class="meal-header">
+                            <h3 class="meal-name">${escapeHtml(meal.name)}</h3>
+                            <div class="meal-calories">${meal.total_kcal} kcal</div>
+                        </div>
+                        
+                        <div class="meal-summary-content">
+                            <div class="meal-summary-info">
+                                ${meal.foods?.length || 0} food${(meal.foods?.length || 0) !== 1 ? 's' : ''} • Last used: ${lastUsedDate}
+                            </div>
+                            
+                            <div class="meal-actions" onclick="event.stopPropagation()">
+                                <button onclick="editMeal('${meal._id}')" class="btn btn-edit btn-small">Edit</button>
+                                <button onclick="useMeal('${meal._id}')" class="btn btn-use btn-small">Use</button>
+                                <button onclick="deleteMeal('${meal._id}', '${escapeHtml(meal.name)}')" class="btn btn-delete btn-small">Delete</button>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="meal-dates">
-                        <div>Created: ${createdDate}</div>
-                        <div>Last used: ${lastUsedDate}</div>
-                    </div>
-                    
-                    <div class="meal-foods">
-                        <div class="meal-foods-title">Foods (${meal.foods?.length || 0}):</div>
-                        ${foodsHtml}
-                    </div>
-                    
-                    <div class="meal-actions">
-                        <button onclick="editMeal('${meal._id}')" class="btn btn-outline btn-small">Edit</button>
-                        <button onclick="useMeal('${meal._id}')" class="btn btn-secondary btn-small">Use</button>
-                        <button onclick="deleteMeal('${meal._id}', '${escapeHtml(meal.name)}')" class="btn btn-danger btn-small">Delete</button>
+                    <div class="meal-details">
+                        <div class="meal-dates">
+                            <div><strong>Created:</strong> ${createdDate}</div>
+                            <div><strong>Last used:</strong> ${lastUsedDate}</div>
+                        </div>
+                        
+                        <div class="meal-foods">
+                            <div class="meal-foods-title">Foods (${meal.foods?.length || 0}):</div>
+                            ${foodsHtml}
+                        </div>
                     </div>
                 </div>
             `;
+        }
+
+        function toggleMealDetails(mealId) {
+            const card = $(`.meal-card[data-meal-id="${mealId}"]`);
+            card.toggleClass('expanded');
         }
 
         function editMeal(mealId) {
@@ -374,12 +472,39 @@ function loadNavbar() {
 
                     console.log(`Adding ${meal.foods.length} foods from meal "${meal.name}" to day meal ${mealIndex}`);
                     
-                    // Add each food from the saved meal to the existing day meal
-                    const addFoodPromises = meal.foods.map((food, index) => {
-                        console.log(`Processing food ${index + 1}/${meal.foods.length}:`, food);
-                        
-                        // Create a helper function to add the food
-                        const addFoodToDay = (foodId) => {
+                    // Add foods sequentially to avoid race conditions
+                    let successful = 0;
+                    let failed = 0;
+                    const failedFoods = [];
+
+                    // Process foods one by one
+                    const processFoodSequentially = async (foods, index = 0) => {
+                        if (index >= foods.length) {
+                            return { successful, failed, failedFoods };
+                        }
+
+                        const food = foods[index];
+                        console.log(`Processing food ${index + 1}/${foods.length}:`, food);
+
+                        try {
+                            // Try to find the food ID by searching
+                            let foodId = food.title; // fallback to title
+                            try {
+                                const searchResults = await $.get(`/api/food/search?q=${encodeURIComponent(food.title)}&limit=1`); 
+                                console.log(`Search results for "${food.title}":`, searchResults);
+                                
+                                if (searchResults.length > 0) {
+                                    const matchedFood = searchResults.find(f => f.name === food.title);
+                                    if (matchedFood) {
+                                        foodId = matchedFood._id;
+                                        console.log(`Found matching food ID: ${foodId}`);
+                                    }
+                                }
+                            } catch (searchError) {
+                                console.warn(`Food search failed for "${food.title}", using title as fallback:`, searchError);
+                            }
+
+                            // Add the food to the day
                             const foodData = {
                                 foodId: foodId,
                                 weight: food.weight
@@ -395,58 +520,34 @@ function loadNavbar() {
 
                             console.log(`Adding food ${index + 1} to day:`, foodData);
 
-                            return $.ajax({
+                            await $.ajax({
                                 url: `/day/${dayParam}/meals/${mealIndex}/foods`,
                                 method: 'POST',
                                 contentType: 'application/json',
                                 data: JSON.stringify(foodData)
-                            }).done(() => {
-                                console.log(`Successfully added food ${index + 1}: ${food.title}`);
-                            }).fail((xhr) => {
-                                console.error(`Failed to add food ${index + 1}: ${food.title}`, xhr.responseText);
                             });
-                        };
-                        
-                        // Try to find the food ID by searching, since saved meals might not have valid IDs
-                        return $.get(`/api/food/search?q=${encodeURIComponent(food.title)}&limit=1`)
-                            .then(searchResults => {
-                                let foodId = food.title; // fallback to title
-                                console.log(`Search results for "${food.title}":`, searchResults);
-                                
-                                // If we found a matching food, use its ID
-                                if (searchResults.length > 0) {
-                                    const matchedFood = searchResults.find(f => f.name === food.title);
-                                    if (matchedFood) {
-                                        foodId = matchedFood._id;
-                                        console.log(`Found matching food ID: ${foodId}`);
-                                    }
-                                }
-                                
-                                return addFoodToDay(foodId);
-                            })
-                            .catch(searchError => {
-                                console.warn(`Food search failed for "${food.title}", using title as fallback:`, searchError);
-                                return addFoodToDay(food.title);
-                            });
-                    });
 
-                    // Wait for all foods to be added (use allSettled to handle partial failures)
-                    Promise.allSettled(addFoodPromises)
+                            console.log(`Successfully added food ${index + 1}: ${food.title}`);
+                            successful++;
+                        } catch (error) {
+                            console.error(`Failed to add food ${index + 1}: ${food.title}`, error);
+                            failed++;
+                            failedFoods.push(food.title);
+                        }
+
+                        // Process next food
+                        return processFoodSequentially(foods, index + 1);
+                    };
+
+                    // Start processing foods sequentially
+                    processFoodSequentially(meal.foods)
                         .then(results => {
                             console.log('Food addition results:', results);
+                            console.log(`Added ${results.successful} foods successfully, ${results.failed} failed`);
                             
-                            const successful = results.filter(r => r.status === 'fulfilled').length;
-                            const failed = results.filter(r => r.status === 'rejected').length;
-                            
-                            console.log(`Added ${successful} foods successfully, ${failed} failed`);
-                            
-                            if (failed > 0) {
-                                const failedFoods = results
-                                    .map((result, index) => result.status === 'rejected' ? meal.foods[index].title : null)
-                                    .filter(title => title !== null);
-                                
-                                console.warn('Failed to add foods:', failedFoods);
-                                alert(`Warning: ${failed} out of ${meal.foods.length} foods could not be added:\n${failedFoods.join(', ')}`);
+                            if (results.failed > 0) {
+                                console.warn('Failed to add foods:', results.failedFoods);
+                                alert(`Warning: ${results.failed} out of ${meal.foods.length} foods could not be added:\n${results.failedFoods.join(', ')}`);
                             }
                             
                             // Update meal usage regardless of partial failures

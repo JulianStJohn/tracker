@@ -35,8 +35,20 @@ export interface Meal {
   date_last_used: Date;
 }
 
+export interface Recipe {
+  _id?: any; // MongoDB ObjectId
+  name: string;
+  foods: FoodItem[];
+  steps: string; // Markdown format
+  portions: number;
+  total_kcal: number;
+  date_created: Date;
+  date_last_used: Date;
+}
+
 export interface Day {
   _id?: any; // MongoDB ObjectId
   yyyymmdd: number;
   meals: MealItem[];
+  goal_kcal?: number; // Optional daily calorie goal
 }

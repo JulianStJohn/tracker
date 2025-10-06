@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+    <title>Progress - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .progress-header h1 {
+            margin: 0;
+            color: #333;
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .month-nav-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .month-nav-btn:hover {
+            background: #0056b3;
+        }
+
+        .month-nav-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .current-month {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+        }
+
+        .chart-section h2 {
+            margin: 0 0 1rem 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .chart-section p {
+            margin: 0 0 1.5rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value.positive {
+            color: #28a745;
+        }
+
+        .stat-value.negative {
+            color: #dc3545;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 2rem;
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .progress-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .month-navigation {
+                justify-content: center;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .chart-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+        
+        <div class="progress-header">
+            <h1>Progress Tracking</h1>
+            <div class="month-navigation">
+                <button id="prevMonthBtn" class="month-nav-btn">← Previous</button>
+                <div id="currentMonth" class="current-month"></div>
+                <button id="nextMonthBtn" class="month-nav-btn">Next →</button>
+            </div>
+        </div>
+
+        <div id="chartsContainer" class="charts-container">
+            <div class="loading">Loading progress data...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = null;
+        let dailyDeficitChart = null;
+        let cumulativeDeficitChart = null;
+
+        $(document).ready(function() {
+            loadNavbar();
+
+            // Initialize with current month
+            const now = new Date();
+            currentMonth = {
+                year: now.getFullYear(),
+                month: now.getMonth() + 1 // 1-based month
+            };
+
+            loadMonthData();
+
+            // Set up navigation buttons
+            $('#prevMonthBtn').click(() => navigateMonth(-1));
+            $('#nextMonthBtn').click(() => navigateMonth(1));
+        });
+
+        function loadNavbar() {
+            $.get('/_navbar.html', function(data) {
+                $('#navbar-container').html(data);
+            }).fail(function() {
+                console.error('Failed to load navbar');
+            });
+        }
+
+        function navigateMonth(direction) {
+            let newMonth = currentMonth.month + direction;
+            let newYear = currentMonth.year;
+
+            if (newMonth > 12) {
+                newMonth = 1;
+                newYear++;
+            } else if (newMonth < 1) {
+                newMonth = 12;
+                newYear--;
+            }
+
+            currentMonth = { year: newYear, month: newMonth };
+            loadMonthData();
+        }
+
+        function loadMonthData() {
+            const monthStr = String(currentMonth.month).padStart(2, '0');
+            const yyyymm = `${currentMonth.year}${monthStr}`;
+            
+            // Update month display
+            const monthName = new Date(currentMonth.year, currentMonth.month - 1, 1)
+                .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            $('#currentMonth').text(monthName);
+
+            // Enable/disable navigation buttons
+            const now = new Date();
+            const currentYYYYMM = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+            $('#nextMonthBtn').prop('disabled', yyyymm >= currentYYYYMM);
+
+            // Load data from API
+            $.ajax({
+                url: `/api/progress/${yyyymm}`,
+                method: 'GET',
+                success: function(data) {
+                    displayCharts(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching progress data:', error);
+                    $('#chartsContainer').html(`
+                        <div class="error">
+                            Error loading progress data: ${xhr.responseJSON?.error || 'Unknown error'}
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function displayCharts(data) {
+            const { days, monthStats } = data;
+            
+            // Clear existing charts
+            if (dailyDeficitChart) {
+                dailyDeficitChart.destroy();
+            }
+            if (cumulativeDeficitChart) {
+                cumulativeDeficitChart.destroy();
+            }
+
+            // Create charts HTML
+            $('#chartsContainer').html(`
+                <div class="chart-section">
+                    <h2>Daily Caloric Balance</h2>
+                    <p>Green bars show caloric deficit (calories burned > calories consumed), red bars show surplus.</p>
+                    <div class="chart-container">
+                        <canvas id="dailyDeficitChart"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-value ${monthStats.avgDailyDeficit >= 0 ? 'positive' : 'negative'}">
+                                ${Math.abs(monthStats.avgDailyDeficit)} kcal
+                            </div>
+                            <div class="stat-label">Avg Daily ${monthStats.avgDailyDeficit >= 0 ? 'Deficit' : 'Surplus'}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${monthStats.daysWithData}</div>
+                            <div class="stat-label">Days Tracked</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${monthStats.deficitDays}</div>
+                            <div class="stat-label">Deficit Days</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${monthStats.surplusDays}</div>
+                            <div class="stat-label">Surplus Days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <h2>Cumulative Caloric Balance</h2>
+                    <p>Running total of your caloric balance throughout the month.</p>
+                    <div class="chart-container">
+                        <canvas id="cumulativeDeficitChart"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-value ${monthStats.totalDeficit >= 0 ? 'positive' : 'negative'}">
+                                ${Math.abs(monthStats.totalDeficit)} kcal
+                            </div>
+                            <div class="stat-label">Total Month ${monthStats.totalDeficit >= 0 ? 'Deficit' : 'Surplus'}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value ${monthStats.projectedWeightChange >= 0 ? 'negative' : 'positive'}">
+                                ${Math.abs(monthStats.projectedWeightChange).toFixed(1)} lbs
+                            </div>
+                            <div class="stat-label">Est. Weight ${monthStats.projectedWeightChange >= 0 ? 'Loss' : 'Gain'}</div>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            // Create daily deficit bar chart
+            createDailyDeficitChart(days);
+            
+            // Create cumulative deficit line chart
+            createCumulativeDeficitChart(days);
+        }
+
+        function createDailyDeficitChart(days) {
+            const ctx = document.getElementById('dailyDeficitChart').getContext('2d');
+            
+            // Create full month data with nulls for missing days
+            const fullMonthData = createFullMonthData(days);
+            
+            const labels = fullMonthData.map(day => day.label);
+            const deficits = fullMonthData.map(day => day.deficit);
+            
+            // Color bars based on deficit/surplus (only for non-null values)
+            const backgroundColors = deficits.map(deficit => {
+                if (deficit === null) return 'rgba(0, 0, 0, 0)'; // Transparent for missing days
+                return deficit >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)';
+            });
+            const borderColors = deficits.map(deficit => {
+                if (deficit === null) return 'rgba(0, 0, 0, 0)'; // Transparent for missing days
+                return deficit >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)';
+            });
+
+            dailyDeficitChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Daily Caloric Balance',
+                        data: deficits,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.3)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' kcal';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            filter: function(tooltipItem) {
+                                // Hide tooltip for null values (days with no data)
+                                return tooltipItem.parsed.y !== null;
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    if (value === null) return '';
+                                    const type = value >= 0 ? 'Deficit' : 'Surplus';
+                                    return `${type}: ${Math.abs(value)} kcal`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCumulativeDeficitChart(days) {
+            const ctx = document.getElementById('cumulativeDeficitChart').getContext('2d');
+            
+            // Create full month data with nulls for missing days
+            const fullMonthData = createFullMonthData(days);
+            
+            const labels = fullMonthData.map(day => day.label);
+            let cumulativeDeficit = 0;
+            const cumulativeData = fullMonthData.map(day => {
+                if (day.deficit !== null) {
+                    cumulativeDeficit += day.deficit;
+                    return cumulativeDeficit;
+                }
+                // For missing days, return null to create gaps in the line chart
+                return null;
+            });
+
+            cumulativeDeficitChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cumulative Caloric Balance',
+                        data: cumulativeData,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1,
+                        spanGaps: false // Don't connect across null values
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(0, 0, 0, 0.3)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' kcal';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            filter: function(tooltipItem) {
+                                // Hide tooltip for null values (days with no data)
+                                return tooltipItem.parsed.y !== null;
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    if (value === null) return '';
+                                    const type = value >= 0 ? 'Deficit' : 'Surplus';
+                                    return `Cumulative ${type}: ${Math.abs(value)} kcal`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFullMonthData(daysWithData) {
+            const fullMonthData = [];
+            const daysInMonth = new Date(currentMonth.year, currentMonth.month, 0).getDate();
+            
+            // Create a map for quick lookup of existing data
+            const dataMap = {};
+            daysWithData.forEach(day => {
+                const dayNum = parseInt(day.date.split('-')[2]);
+                dataMap[dayNum] = day;
+            });
+            
+            // Create entries for all days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const label = formatDateForChart(dateStr);
+                
+                if (dataMap[day]) {
+                    // Day has data
+                    fullMonthData.push({
+                        label: label,
+                        deficit: dataMap[day].deficit,
+                        consumed: dataMap[day].consumed,
+                        goal: dataMap[day].goal
+                    });
+                } else {
+                    // Day has no data - use null values
+                    fullMonthData.push({
+                        label: label,
+                        deficit: null,
+                        consumed: null,
+                        goal: null
+                    });
+                }
+            }
+            
+            return fullMonthData;
+        }
+
+        function formatDateForChart(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    </script>
+</body>
+</html>

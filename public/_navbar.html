@@ -1,11 +1,47 @@
 <div id="navbar">
       <div class="navbar-title">Tracker</div>
-      <button class="navbar-tab" id="tab-day" data-location="day.html" type="button" role="tab">Day</button>
-      <button class="navbar-tab" id="tab-foods" data-location="food.html" type="button" role="tab">Foods</button>
-      <button class="navbar-tab" id="tab-meals" data-location="meals.html" type="button" role="tab">Meals</button>
-      <button class="navbar-tab" id="tab-data" data-location="data.html" type="button" role="tab">Data</button>
-    <div class="navbar-spacer">&nbsp;</div>
-      <button class="navbar-link" id="logout" type="button">Logout</button> 
+      
+      <!-- Desktop navigation -->
+      <div class="navbar-desktop">
+        <button class="navbar-tab" id="tab-day" data-location="day.html" type="button" role="tab">Day</button>
+        <button class="navbar-tab" id="tab-foods" data-location="food.html" type="button" role="tab">Foods</button>
+        <button class="navbar-tab" id="tab-meals" data-location="meals.html" type="button" role="tab">Meals</button>
+        <button class="navbar-tab" id="tab-recipes" data-location="recipes.html" type="button" role="tab">Recipes</button>
+        <button class="navbar-tab" id="tab-progress" data-location="progress.html" type="button" role="tab">Progress</button>
+        <button class="navbar-tab" id="tab-data" data-location="data.html" type="button" role="tab">Data</button>
+        <div class="navbar-spacer">&nbsp;</div>
+        <button class="navbar-link" id="logout" type="button">Logout</button>
+      </div>
+      
+      <!-- Mobile hamburger menu -->
+      <div class="navbar-mobile">
+        <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        
+        <!-- Mobile menu backdrop -->
+        <div class="mobile-menu-backdrop" id="mobile-menu-backdrop"></div>
+        
+        <!-- Mobile menu -->
+        <div class="mobile-menu" id="mobile-menu">
+          <div class="mobile-menu-header">
+            <h2 class="mobile-menu-title">Tracker</h2>
+            <button class="mobile-menu-close" id="mobile-menu-close" type="button" aria-label="Close menu">×</button>
+          </div>
+          <div class="mobile-menu-content">
+            <button class="mobile-menu-item" id="mobile-tab-day" data-location="day.html" type="button" role="tab">Day</button>
+            <button class="mobile-menu-item" id="mobile-tab-foods" data-location="food.html" type="button" role="tab">Foods</button>
+            <button class="mobile-menu-item" id="mobile-tab-meals" data-location="meals.html" type="button" role="tab">Meals</button>
+            <button class="mobile-menu-item" id="mobile-tab-recipes" data-location="recipes.html" type="button" role="tab">Recipes</button>
+            <button class="mobile-menu-item" id="mobile-tab-progress" data-location="progress.html" type="button" role="tab">Progress</button>
+            <button class="mobile-menu-item" id="mobile-tab-data" data-location="data.html" type="button" role="tab">Data</button>
+            <div class="mobile-menu-divider"></div>
+            <button class="mobile-menu-item" id="mobile-logout" type="button">Logout</button>
+          </div>
+        </div>
+      </div>
 </div>
 
 <script>
@@ -20,6 +56,10 @@
         'edit_food.html': 'tab-foods',
         'meals.html': 'tab-meals',
         'edit_meal.html': 'tab-meals',
+        'recipes.html': 'tab-recipes',
+        'edit_recipe.html': 'tab-recipes',
+        'make_recipe.html': 'tab-recipes',
+        'progress.html': 'tab-progress',
         'data.html': 'tab-data'
     };
 
@@ -28,8 +68,8 @@
         const currentPath = window.location.pathname;
         const currentPage = currentPath.split('/').pop() || 'day.html';
         
-        // Remove active class from all tabs
-        document.querySelectorAll('.navbar-tab').forEach(tab => {
+        // Remove active class from all tabs (both desktop and mobile)
+        document.querySelectorAll('.navbar-tab, .mobile-menu-item').forEach(tab => {
             tab.classList.remove('active');
             tab.setAttribute('aria-selected', 'false');
         });
@@ -37,16 +77,25 @@
         // Find and activate the correct tab
         const activeTabId = pageMapping[currentPage] || pageMapping[currentPath];
         if (activeTabId) {
+            // Desktop tab
             const activeTab = document.getElementById(activeTabId);
             if (activeTab) {
                 activeTab.classList.add('active');
                 activeTab.setAttribute('aria-selected', 'true');
+            }
+            
+            // Mobile tab
+            const mobileActiveTab = document.getElementById('mobile-' + activeTabId);
+            if (mobileActiveTab) {
+                mobileActiveTab.classList.add('active');
+                mobileActiveTab.setAttribute('aria-selected', 'true');
             }
         }
     }
 
     // Set up click handlers for navigation tabs
     function setupNavigation() {
+        // Desktop navigation
         document.querySelectorAll('.navbar-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const location = this.getAttribute('data-location');
@@ -56,19 +105,126 @@
             });
         });
 
-        // Setup logout handler
-        const logoutBtn = document.getElementById('logout');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                // Clear any stored auth data
-                document.cookie.split(";").forEach(function(c) { 
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                });
-                
-                // Redirect to logout or login page
-                window.location.href = '/auth/logout';
+        // Mobile navigation
+        document.querySelectorAll('.mobile-menu-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const location = this.getAttribute('data-location');
+                if (location) {
+                    window.location.href = '/' + location;
+                } else if (this.id === 'mobile-logout') {
+                    handleLogout();
+                }
+                // Close mobile menu after navigation
+                closeMobileMenu();
+            });
+        });
+
+        // Hamburger menu toggle
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        
+        if (hamburgerBtn && mobileMenu) {
+            hamburgerBtn.addEventListener('click', function() {
+                const isOpen = mobileMenu.classList.contains('open');
+                if (isOpen) {
+                    closeMobileMenu();
+                } else {
+                    openMobileMenu();
+                }
             });
         }
+
+        // Close button
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+
+        // Close mobile menu when clicking backdrop
+        if (mobileMenuBackdrop) {
+            mobileMenuBackdrop.addEventListener('click', closeMobileMenu);
+        }
+
+        // Close mobile menu when clicking outside (legacy support)
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            
+            if (mobileMenu && hamburgerBtn && 
+                !mobileMenu.contains(event.target) && 
+                !hamburgerBtn.contains(event.target) &&
+                mobileMenu.classList.contains('open')) {
+                closeMobileMenu();
+            }
+        });
+
+        // Close mobile menu with ESC key
+        document.addEventListener('keydown', function(event) {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (event.key === 'Escape' && mobileMenu && mobileMenu.classList.contains('open')) {
+                closeMobileMenu();
+            }
+        });
+
+        // Setup logout handlers
+        const logoutBtn = document.getElementById('logout');
+        const mobileLogoutBtn = document.getElementById('mobile-logout');
+        
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+        if (mobileLogoutBtn) {
+            mobileLogoutBtn.addEventListener('click', handleLogout);
+        }
+    }
+
+    function openMobileMenu() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        
+        if (mobileMenu && hamburgerBtn) {
+            mobileMenu.classList.add('open');
+            hamburgerBtn.classList.add('active');
+            hamburgerBtn.setAttribute('aria-expanded', 'true');
+            
+            if (mobileMenuBackdrop) {
+                mobileMenuBackdrop.classList.add('open');
+            }
+            
+            // Prevent body scrolling when menu is open
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeMobileMenu() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        
+        if (mobileMenu && hamburgerBtn) {
+            mobileMenu.classList.remove('open');
+            hamburgerBtn.classList.remove('active');
+            hamburgerBtn.setAttribute('aria-expanded', 'false');
+            
+            if (mobileMenuBackdrop) {
+                mobileMenuBackdrop.classList.remove('open');
+            }
+            
+            // Restore body scrolling
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleLogout() {
+        // Clear any stored auth data
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+        
+        // Redirect to logout or login page
+        window.location.href = '/auth/logout';
     }
 
     // Initialize navbar when DOM is ready
@@ -82,7 +238,8 @@
         setupNavigation();
     }
 
-    // Expose function globally for manual activation if needed
+    // Expose functions globally for manual activation if needed
     window.setActiveNavTab = setActiveTab;
+    window.closeMobileMenu = closeMobileMenu;
 })();
 </script>
