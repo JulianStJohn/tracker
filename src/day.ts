@@ -139,32 +139,63 @@ export function makeDayRouter(mongo: MongoStore): Router {
     }
   });
 
-  // PUT /day/:yyyymmdd - Update an entire day (including meals)
+  // PUT /day/:yyyymmdd - Update day fields (meals, notes, goal_kcal, etc.)
   router.put("/:yyyymmdd", async (req: Request, res: Response) => {
     try {
       const yyyymmdd = parseInt(req.params.yyyymmdd);
-      const { meals } = req.body;
+      const { meals, notes, goal_kcal } = req.body;
       
       // Validate date format
       if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
         return res.status(400).json({ error: "Invalid date format. Use YYYYMMDD." });
       }
 
-      // Validate meals array
-      if (!Array.isArray(meals)) {
-        return res.status(400).json({ error: "Meals must be an array." });
-      }
-
-      // Find the existing day
-      const existingDay = await mongo.days.findOne({ yyyymmdd });
+      // Find the existing day or create it if it doesn't exist
+      let existingDay = await mongo.days.findOne({ yyyymmdd });
       if (!existingDay) {
-        return res.status(404).json({ error: "Day not found." });
+        // Create new day with default values
+        const newDay = {
+          yyyymmdd,
+          meals: createDefaultMeals(),
+          goal_kcal: appConfig.goals.daily_kcal
+        };
+        const result = await mongo.days.insertOne(newDay);
+        existingDay = await mongo.days.findOne({ _id: result.insertedId });
       }
 
-      // Update the day with new meals
+      // Build update object with only provided fields
+      const updateFields: any = {};
+      
+      if (meals !== undefined) {
+        // Validate meals array if provided
+        if (!Array.isArray(meals)) {
+          return res.status(400).json({ error: "Meals must be an array." });
+        }
+        updateFields.meals = meals;
+      }
+      
+      if (notes !== undefined) {
+        // Set notes (can be null/empty to clear notes)
+        updateFields.notes = notes || null;
+      }
+      
+      if (goal_kcal !== undefined) {
+        // Validate goal_kcal if provided
+        if (typeof goal_kcal !== 'number' || goal_kcal < 0) {
+          return res.status(400).json({ error: "Goal kcal must be a positive number." });
+        }
+        updateFields.goal_kcal = goal_kcal;
+      }
+
+      // Only update if there are fields to update
+      if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ error: "No valid fields provided for update." });
+      }
+
+      // Update the day with provided fields
       await mongo.days.updateOne(
         { yyyymmdd },
-        { $set: { meals } }
+        { $set: updateFields }
       );
 
       // Return the updated day

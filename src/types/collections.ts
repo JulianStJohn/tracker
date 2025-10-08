@@ -51,4 +51,5 @@ export interface Day {
   yyyymmdd: number;
   meals: MealItem[];
   goal_kcal?: number; // Optional daily calorie goal
+  notes?: string; // Optional notes for the day
 }

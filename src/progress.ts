@@ -23,6 +23,14 @@ router.get('/:yyyymm', async (req, res) => {
             return res.status(400).json({ error: 'Invalid month. Must be between 01 and 12.' });
         }
 
+        // Get current date to exclude from progress data
+        const today = new Date();
+        const todayYYYYMMDD = parseInt(
+            today.getFullYear().toString() +
+            (today.getMonth() + 1).toString().padStart(2, '0') +
+            today.getDate().toString().padStart(2, '0')
+        );
+
         // Get all days for the specified month
         const startDate = year * 10000 + month * 100 + 1; // YYYYMM01
         const endDate = year * 10000 + month * 100 + 31; // YYYYMM31 (we'll filter exact dates)
@@ -37,6 +45,12 @@ router.get('/:yyyymm', async (req, res) => {
         
         for (let day = 1; day <= daysInMonth; day++) {
             const dayDate = year * 10000 + month * 100 + day;
+            
+            // Skip current day - only show data for yesterday and before
+            if (dayDate >= todayYYYYMMDD) {
+                continue;
+            }
+            
             const dayData = days.find((d: Day) => d.yyyymmdd === dayDate);
             
             if (dayData && dayData.meals && dayData.meals.length > 0) {

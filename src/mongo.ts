@@ -49,7 +49,8 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
           }
         }
       },
-      goal_kcal: { bsonType: ["int", "double"], description: "Daily calorie goal (optional)" }
+      goal_kcal: { bsonType: ["int", "double"], description: "Daily calorie goal (optional)" },
+      notes: { bsonType: "string", description: "Daily notes (optional)" }
     } 
   },
   "food" : {

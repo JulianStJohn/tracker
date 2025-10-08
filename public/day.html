@@ -370,6 +370,162 @@
             background-color: #218838;
         }
 
+        /* Add notes prompt styles */
+        .add-notes-prompt {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .btn-add-notes {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-notes:hover {
+            background: #218838;
+        }
+
+        /* Notes section styles */
+        .notes-section {
+            margin-bottom: 2rem;
+        }
+
+        .notes-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notes-header:hover {
+            background: #e9ecef;
+        }
+
+        .notes-item.collapsed .notes-header {
+            border-bottom: none;
+        }
+
+        .notes-info {
+            flex: 1;
+        }
+
+        .notes-title {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .notes-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit-notes {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-edit-notes:hover {
+            background: #545b62;
+        }
+
+        .notes-content {
+            padding: 1rem;
+        }
+
+        .notes-item.collapsed .notes-content {
+            display: none;
+        }
+
+        .notes-display {
+            line-height: 1.6;
+            white-space: pre-wrap;
+            min-height: 1.5rem;
+        }
+
+        .notes-display em {
+            color: #666;
+            font-style: italic;
+        }
+
+        .notes-edit-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .notes-edit-form textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .notes-form-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .notes-form-actions .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .notes-form-actions .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .notes-form-actions .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .notes-form-actions .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .notes-form-actions .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
         @media (max-width: 768px) {
             #page-container {
                 padding: 0 1rem;
@@ -453,12 +609,47 @@
             </div>
         </div>
 
+        <div class="add-notes-prompt" id="addNotesPrompt" style="display: none;">
+            <button class="btn-add-notes" onclick="showNotesForEditing()">+ Add Notes</button>
+        </div>
+
+        <div class="notes-section">
+            <div class="notes-item collapsed" id="notesItem">
+                <div class="notes-header" onclick="toggleNotes()">
+                    <div class="notes-info">
+                        <h3 class="notes-title">Notes</h3>
+                    </div>
+                    <div class="notes-actions">
+                        <button class="btn-edit-notes" onclick="event.stopPropagation(); editNotes()" title="Edit notes">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="notes-content">
+                    <div class="notes-display" id="notesDisplay">
+                        <em>No notes for this day</em>
+                    </div>
+                    <div class="notes-edit-form" id="notesEditForm" style="display: none;">
+                        <textarea id="notesTextarea" placeholder="Enter your notes for this day..." rows="4"></textarea>
+                        <div class="notes-form-actions">
+                            <button class="btn btn-primary" onclick="saveNotes()">Save</button>
+                            <button class="btn btn-secondary" onclick="cancelEditNotes()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <ul id="dayList" class="day-list">
         </ul>
     </div>
 
     <script>
         let currentDate = null;
+        let isTodayMode = false; // Track if we're in "day=today" mode
 
         $(document).ready(function() {
             loadNavbar();
@@ -467,10 +658,17 @@
 
             // Get date from query parameter, localStorage, or use today
             const urlParams = new URLSearchParams(window.location.search);
+            const dayParam = urlParams.get('day');
             const dateParam = urlParams.get('yyyymmdd');
             
-            if (dateParam && /^\d{8}$/.test(dateParam)) {
+            // Special case: day=today displays current day without redirecting
+            if (dayParam === 'today') {
+                const today = new Date();
+                currentDate = parseInt(formatDateToYYYYMMDD(today));
+                isTodayMode = true;
+            } else if (dateParam && /^\d{8}$/.test(dateParam)) {
                 currentDate = parseInt(dateParam);
+                isTodayMode = false;
             } else {
                 // Try to restore from localStorage
                 const savedDate = localStorage.getItem('dayPage_currentDate');
@@ -481,6 +679,7 @@
                     const today = new Date();
                     currentDate = parseInt(formatDateToYYYYMMDD(today));
                 }
+                isTodayMode = false;
             }
 
             loadDay(currentDate);
@@ -520,9 +719,11 @@
             $('#dateDisplay').text(dateStr);
             document.title = `Food Tracker - ${dateStr}`;
             
-            // Update URL without refreshing page
-            const newUrl = `${window.location.pathname}?yyyymmdd=${yyyymmdd}`;
-            window.history.pushState({}, '', newUrl);
+            // Update URL without refreshing page (unless in "today" mode)
+            if (!isTodayMode) {
+                const newUrl = `${window.location.pathname}?yyyymmdd=${yyyymmdd}`;
+                window.history.pushState({}, '', newUrl);
+            }
 
             // Restore expanded meals state for this specific date
             const savedExpandedMeals = localStorage.getItem(`dayPage_expandedMeals_${yyyymmdd}`);
@@ -578,6 +779,9 @@
             
             // Update summary panel
             updateSummaryPanel(day);
+            
+            // Load notes for this day
+            loadNotesForDay(day);
             
             if (!day || !day.meals || day.meals.length === 0) {
                 $('#dayList').html(`
@@ -691,6 +895,7 @@
         }
 
         function navigateDay(direction) {
+            isTodayMode = false; // Exit "today mode" when navigating
             const date = parseYYYYMMDD(currentDate);
             date.setDate(date.getDate() + direction);
             const newYYYYMMDD = parseInt(formatDateToYYYYMMDD(date));
@@ -698,6 +903,7 @@
         }
 
         function navigateToToday() {
+            isTodayMode = false; // Exit "today mode" when clicking "Today" button
             const today = new Date();
             const todayYYYYMMDD = parseInt(formatDateToYYYYMMDD(today));
             loadDay(todayYYYYMMDD);
@@ -1043,7 +1249,136 @@
             window.location.href = `edit_meal.html?${queryParams.toString()}`;
         }
 
+        // Notes functionality
+        let notesExpanded = false;
 
+        function toggleNotes() {
+            const notesItem = $('#notesItem');
+            const isCollapsed = notesItem.hasClass('collapsed');
+            
+            if (isCollapsed) {
+                notesItem.removeClass('collapsed');
+                notesExpanded = true;
+            } else {
+                notesItem.addClass('collapsed');
+                notesExpanded = false;
+            }
+            
+            // Save expanded state to localStorage
+            localStorage.setItem(`dayPage_notesExpanded_${currentDate}`, notesExpanded.toString());
+        }
+
+        function editNotes() {
+            $('#notesDisplay').hide();
+            $('#notesEditForm').show();
+            $('#notesTextarea').focus();
+        }
+
+        function cancelEditNotes() {
+            $('#notesEditForm').hide();
+            
+            // Check if current day actually has notes
+            const currentDayHasNotes = currentDayData && currentDayData.notes && currentDayData.notes.trim();
+            
+            if (currentDayHasNotes) {
+                // Show the notes display with current day's notes
+                $('#notesDisplay').show();
+            } else {
+                // Hide notes section and show add prompt since this day has no notes
+                $('.notes-section').hide();
+                $('#addNotesPrompt').show();
+            }
+        }
+
+        function saveNotes() {
+            const notes = $('#notesTextarea').val().trim();
+            
+            // Update the day document with notes
+            $.ajax({
+                url: `/day/${currentDate}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ notes: notes || null }),
+                success: function(response) {
+                    console.log('Notes saved successfully');
+                    updateNotesDisplay(notes);
+                    cancelEditNotes();
+                    
+                    // Handle visibility after saving
+                    const notesSection = $('.notes-section');
+                    const addNotesPrompt = $('#addNotesPrompt');
+                    if (notes) {
+                        // Show section, hide prompt, and keep expanded after saving
+                        notesSection.show();
+                        addNotesPrompt.hide();
+                        $('#notesItem').removeClass('collapsed');
+                        notesExpanded = true;
+                        localStorage.setItem(`dayPage_notesExpanded_${currentDate}`, 'true');
+                    } else {
+                        // Hide section and show prompt if notes were cleared
+                        notesSection.hide();
+                        addNotesPrompt.show();
+                        notesExpanded = false;
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error saving notes:', error);
+                    alert('Error saving notes: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                }
+            });
+        }
+
+        function updateNotesDisplay(notes) {
+            const notesDisplay = $('#notesDisplay');
+            if (notes && notes.trim()) {
+                notesDisplay.html(escapeHtml(notes).replace(/\n/g, '<br>'));
+            } else {
+                notesDisplay.html('<em>No notes for this day</em>');
+            }
+        }
+
+        function loadNotesForDay(day) {
+            const hasNotes = day.notes && day.notes.trim();
+            const notesSection = $('.notes-section');
+            const addNotesPrompt = $('#addNotesPrompt');
+            const notesItem = $('#notesItem');
+            
+            if (hasNotes) {
+                // Show notes section and hide add prompt
+                notesSection.show();
+                addNotesPrompt.hide();
+                updateNotesDisplay(day.notes);
+                
+                // Set textarea value for editing
+                $('#notesTextarea').val(day.notes);
+                
+                // Show expanded by default when there are notes, but allow saved preference to override
+                const savedNotesExpanded = localStorage.getItem(`dayPage_notesExpanded_${currentDate}`);
+                if (savedNotesExpanded === 'false') {
+                    notesItem.addClass('collapsed');
+                    notesExpanded = false;
+                } else {
+                    // Default to expanded when there are notes
+                    notesItem.removeClass('collapsed');
+                    notesExpanded = true;
+                }
+            } else {
+                // Hide notes section and show add prompt when there are no notes
+                notesSection.hide();
+                addNotesPrompt.show();
+                notesExpanded = false;
+            }
+        }
+
+        function showNotesForEditing() {
+            // Show notes section, hide add prompt, and open in edit mode
+            $('.notes-section').show();
+            $('#addNotesPrompt').hide();
+            $('#notesItem').removeClass('collapsed');
+            $('#notesTextarea').val('');
+            editNotes();
+            notesExpanded = true;
+        }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
