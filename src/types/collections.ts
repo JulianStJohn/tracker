@@ -46,10 +46,23 @@ export interface Recipe {
   date_last_used: Date;
 }
 
+export interface Exercise {
+  _id?: any; // MongoDB ObjectId
+  date: Date;
+  type: string;
+  kcal: number;
+}
+
+export interface ExerciseSession {
+  type: string; // Exercise type from dropdown
+  kcal: number;
+}
+
 export interface Day {
   _id?: any; // MongoDB ObjectId
   yyyymmdd: number;
   meals: MealItem[];
   goal_kcal?: number; // Optional daily calorie goal
   notes?: string; // Optional notes for the day
+  exercise_sessions?: ExerciseSession[]; // Optional exercise sessions for the day
 }

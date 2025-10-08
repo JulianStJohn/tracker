@@ -115,8 +115,8 @@ function calculateMonthStats(days: any[]) {
     const surplusDays = days.filter(day => day.deficit < 0).length;
     const avgDailyDeficit = Math.round(totalDeficit / days.length);
     
-    // Estimate weight change (3500 calories = 1 pound)
-    const projectedWeightChange = totalDeficit / 3500;
+    // Estimate weight change (7700 calories = 1 kg)
+    const projectedWeightChange = totalDeficit / 7700;
 
     return {
         daysWithData: days.length,

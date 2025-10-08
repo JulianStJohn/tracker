@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { MongoStore } from "./mongo";
-import { Day, MealItem, FoodItem } from "./types/collections.js";
+import { Day, MealItem, FoodItem, ExerciseSession } from "./types/collections.js";
 import { appConfig } from "./config.js";
 
 // Helper function to create default empty meals
@@ -143,7 +143,7 @@ export function makeDayRouter(mongo: MongoStore): Router {
   router.put("/:yyyymmdd", async (req: Request, res: Response) => {
     try {
       const yyyymmdd = parseInt(req.params.yyyymmdd);
-      const { meals, notes, goal_kcal } = req.body;
+      const { meals, notes, goal_kcal, exercise_sessions } = req.body;
       
       // Validate date format
       if (isNaN(yyyymmdd) || !/^\d{8}$/.test(req.params.yyyymmdd)) {
@@ -175,8 +175,14 @@ export function makeDayRouter(mongo: MongoStore): Router {
       }
       
       if (notes !== undefined) {
-        // Set notes (can be null/empty to clear notes)
-        updateFields.notes = notes || null;
+        // Set notes or remove field if empty/null
+        if (notes && notes.trim()) {
+          updateFields.notes = notes.trim();
+        } else {
+          // If notes is empty/null, we'll use $unset to remove the field
+          updateFields.$unset = updateFields.$unset || {};
+          updateFields.$unset.notes = "";
+        }
       }
       
       if (goal_kcal !== undefined) {
@@ -186,16 +192,52 @@ export function makeDayRouter(mongo: MongoStore): Router {
         }
         updateFields.goal_kcal = goal_kcal;
       }
+      
+      if (exercise_sessions !== undefined) {
+        // Validate exercise_sessions if provided
+        if (!Array.isArray(exercise_sessions)) {
+          return res.status(400).json({ error: "Exercise sessions must be an array." });
+        }
+        
+        // Validate each exercise session
+        for (const session of exercise_sessions) {
+          if (!session.type || typeof session.type !== 'string') {
+            return res.status(400).json({ error: "Each exercise session must have a valid type." });
+          }
+          if (!session.kcal || typeof session.kcal !== 'number' || session.kcal <= 0) {
+            return res.status(400).json({ error: "Each exercise session must have a positive kcal value." });
+          }
+        }
+        
+        updateFields.exercise_sessions = exercise_sessions;
+      }
 
-      // Only update if there are fields to update
-      if (Object.keys(updateFields).length === 0) {
+      // Prepare the update operation
+      const updateOperation: any = {};
+      
+      // Extract $unset operations if any
+      const unsetFields = updateFields.$unset;
+      delete updateFields.$unset;
+      
+      // Only update if there are fields to set or unset
+      if (Object.keys(updateFields).length === 0 && !unsetFields) {
         return res.status(400).json({ error: "No valid fields provided for update." });
+      }
+      
+      // Add $set operation if there are fields to set
+      if (Object.keys(updateFields).length > 0) {
+        updateOperation.$set = updateFields;
+      }
+      
+      // Add $unset operation if there are fields to unset
+      if (unsetFields) {
+        updateOperation.$unset = unsetFields;
       }
 
       // Update the day with provided fields
       await mongo.days.updateOne(
         { yyyymmdd },
-        { $set: updateFields }
+        updateOperation
       );
 
       // Return the updated day
@@ -300,6 +342,16 @@ export function makeDayRouter(mongo: MongoStore): Router {
       res.json({ message: "Food added to meal successfully" });
     } catch (error) {
       console.error(`Error adding food to meal ${req.params.mealIndex} on day ${req.params.yyyymmdd}:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /day/config - Get application configuration
+  router.get("/config", async (req: Request, res: Response) => {
+    try {
+      res.json(appConfig);
+    } catch (error) {
+      console.error("Error fetching app config:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

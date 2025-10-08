@@ -69,6 +69,7 @@ export const LOGOUT_REDIRECT_URI = `${APP_BASE_URL}/logged-out`;
 interface AppConfig {
   goals: {
     daily_kcal: number;
+    tdee: number;
   };
 }
 
@@ -82,7 +83,8 @@ try {
   console.warn('Failed to load config.yml, using defaults:', error);
   appConfig = {
     goals: {
-      daily_kcal: 2000
+      daily_kcal: 2000,
+      tdee: 2400
     }
   };
 }

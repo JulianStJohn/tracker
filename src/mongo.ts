@@ -1,7 +1,7 @@
 import { MongoClient, Db, Collection, Document, CreateIndexesOptions } from "mongodb";
 import "dotenv/config";
 import * as config from "./config.js"
-import { Food, FoodItem, MealItem, Meal, Recipe, Day } from "./types/collections.js"
+import { Food, FoodItem, MealItem, Meal, Recipe, Day, Exercise } from "./types/collections.js"
 
 // Helper function to create default empty meals
 function createDefaultMeals(): MealItem[] {
@@ -50,7 +50,19 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
         }
       },
       goal_kcal: { bsonType: ["int", "double"], description: "Daily calorie goal (optional)" },
-      notes: { bsonType: "string", description: "Daily notes (optional)" }
+      notes: { bsonType: "string", description: "Daily notes (optional)" },
+      exercise_sessions: {
+        bsonType: "array",
+        description: "Array of exercise sessions (optional)",
+        items: {
+          bsonType: "object",
+          required: ["type", "kcal"],
+          properties: {
+            type: { bsonType: "string", description: "Exercise type (required)" },
+            kcal: { bsonType: ["int", "double"], description: "Calories burned (required)" }
+          }
+        }
+      }
     } 
   },
   "food" : {
@@ -122,6 +134,15 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
       date_created: { bsonType: "date", description: "Date recipe was created (required)" },
       date_last_used: { bsonType: "date", description: "Date recipe was last used (required)" }
     }
+  },
+  "exercise" : {
+    required_fields: ["date", "type", "kcal"],
+    properties: {
+      _id: { bsonType: "objectId" },      
+      date: { bsonType: "date", description: "Date of exercise (required)" },
+      type: { bsonType: "string", description: "Exercise type (required)" },
+      kcal: { bsonType: ["int", "double"], description: "Calories burned (required)" }
+    }
   }
 }
 
@@ -133,7 +154,8 @@ export class MongoStore {
     private _days: Collection<Day>,
     private _foods: Collection<Food>,
     private _meals: Collection<Meal>,
-    private _recipes: Collection<Recipe>
+    private _recipes: Collection<Recipe>,
+    private _exercises: Collection<Exercise>
   ) {}
 
   // ---- Startup (connect + ensure collection) ----
@@ -203,8 +225,12 @@ export class MongoStore {
     const recipes = db.collection<Recipe>("recipes");
     await ensureIndexIfMissing(recipes, { name: 1 }, { unique: true, name: 'unique_recipe_name' });
 
+    // Create the exercise collection and optionally add indexes
+    const exercises = db.collection<Exercise>("exercise");
+    await ensureIndexIfMissing(exercises, { date: 1 }, { name: 'date_index' });
+
     console.log(`Connected to MongoDB at ${config.MONGO_URI}, DB '${config.DB_NAME}'.`);
-    return new MongoStore(client, db, days, foods, meals, recipes);
+    return new MongoStore(client, db, days, foods, meals, recipes, exercises);
   }
 
   get database(): Db { return this.db; }
@@ -212,6 +238,7 @@ export class MongoStore {
   get foods(): Collection<Food> { return this._foods; }
   get meals(): Collection<Meal> { return this._meals; }
   get recipes(): Collection<Recipe> { return this._recipes; }
+  get exercises(): Collection<Exercise> { return this._exercises; }
 
   static async createCollection(db: Db, collection: string) {
     await db.createCollection(collection, {
@@ -412,6 +439,45 @@ export class MongoStore {
 
   async deleteRecipe(name: string): Promise<boolean> {
     const result = await this._recipes.deleteOne({ name });
+    return result.deletedCount > 0;
+  }
+
+  // ---- Exercise CRUD operations ----
+  
+  async createExercise(exercise: Omit<Exercise, '_id'>): Promise<Exercise> {
+    const result = await this._exercises.insertOne(exercise);
+    const newExercise = await this._exercises.findOne({ _id: result.insertedId });
+    return newExercise!;
+  }
+
+  async getExercisesByDate(date: Date): Promise<Exercise[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    return this._exercises.find({
+      date: { $gte: startOfDay, $lte: endOfDay }
+    }).sort({ date: -1 }).toArray();
+  }
+
+  async getAllExercises(): Promise<Exercise[]> {
+    return this._exercises.find({}).sort({ date: -1 }).toArray();
+  }
+
+  async updateExercise(id: string, updates: Partial<Omit<Exercise, '_id'>>): Promise<Exercise | null> {
+    const { ObjectId } = await import('mongodb');
+    const result = await this._exercises.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updates },
+      { returnDocument: 'after' }
+    );
+    return result;
+  }
+
+  async deleteExercise(id: string): Promise<boolean> {
+    const { ObjectId } = await import('mongodb');
+    const result = await this._exercises.deleteOne({ _id: new ObjectId(id) });
     return result.deletedCount > 0;
   }
 

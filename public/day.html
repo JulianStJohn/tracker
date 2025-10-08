@@ -42,6 +42,7 @@
             display: flex;
             gap: 2rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .calorie-item {
@@ -526,6 +527,229 @@
             background-color: #545b62;
         }
 
+        /* Exercise section styles */
+        .add-exercise-prompt {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .btn-add-exercise {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-exercise:hover {
+            background: #138496;
+        }
+
+        .exercise-section {
+            margin-bottom: 2rem;
+        }
+
+        .exercise-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .exercise-header:hover {
+            background: #e9ecef;
+        }
+
+        .exercise-item.collapsed .exercise-header {
+            border-bottom: none;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-title {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .exercise-summary {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .exercise-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-add-exercise-inline {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-exercise-inline:hover {
+            background: #138496;
+        }
+
+        .exercise-content {
+            padding: 1rem;
+        }
+
+        .exercise-item.collapsed .exercise-content {
+            display: none;
+        }
+
+        .exercise-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .exercise-list-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .exercise-details {
+            flex: 1;
+        }
+
+        .exercise-type {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .exercise-kcal {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .exercise-item-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .btn-delete-exercise {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-delete-exercise:hover {
+            background: #c82333;
+        }
+
+        .exercise-form {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .exercise-form .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .exercise-form .form-group:last-of-type {
+            margin-bottom: 1.5rem;
+        }
+
+        .exercise-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .exercise-form select,
+        .exercise-form input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .exercise-form select:focus,
+        .exercise-form input:focus {
+            outline: none;
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        }
+
+        .exercise-form-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .exercise-form-actions .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .exercise-form-actions .btn-primary {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .exercise-form-actions .btn-primary:hover {
+            background-color: #138496;
+        }
+
+        .exercise-form-actions .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .exercise-form-actions .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
         @media (max-width: 768px) {
             #page-container {
                 padding: 0 1rem;
@@ -593,12 +817,20 @@
                 </div>
                 <div class="calorie-summary">
                     <div class="calorie-item">
-                        <span class="calorie-label">Total kCal:</span>
+                        <span class="calorie-label">Total:</span>
                         <span class="calorie-value" id="totalKcal">0</span>
+                    </div>
+                    <div class="calorie-item">
+                        <span class="calorie-label">Goal:</span>
+                        <span class="calorie-value" id="goalKcal">2000</span>
                     </div>
                     <div class="calorie-item">
                         <span class="calorie-label">Remaining:</span>
                         <span class="calorie-value" id="remainingKcal">2000</span>
+                    </div>
+                    <div class="calorie-item">
+                        <span class="calorie-label">Deficit:</span>
+                        <span class="calorie-value" id="deficitKcal">2400</span>
                     </div>
                 </div>
             </div>
@@ -607,10 +839,6 @@
                 <button id="todayBtn" class="btn btn-secondary">Today</button>
                 <button id="nextDayBtn" class="btn btn-outline">Next Day →</button>
             </div>
-        </div>
-
-        <div class="add-notes-prompt" id="addNotesPrompt" style="display: none;">
-            <button class="btn-add-notes" onclick="showNotesForEditing()">+ Add Notes</button>
         </div>
 
         <div class="notes-section">
@@ -643,16 +871,71 @@
             </div>
         </div>
 
+        <div class="exercise-section" id="exerciseSection" style="display: none;">
+            <div class="exercise-item" id="exerciseItem">
+                <div class="exercise-header" onclick="toggleExercise()">
+                    <div class="exercise-info">
+                        <h3 class="exercise-title">Exercise Sessions</h3>
+                        <div class="exercise-summary" id="exerciseSummary">No exercises logged</div>
+                    </div>
+                    <div class="exercise-actions">
+                        <button class="btn-add-exercise-inline" onclick="event.stopPropagation(); showExerciseForm()" title="Add exercise">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="exercise-content">
+                    <div class="exercise-list" id="exerciseList">
+                        <!-- Exercise sessions will be populated here -->
+                    </div>
+                    <div class="exercise-form" id="exerciseForm" style="display: none;">
+                        <div class="form-group">
+                            <label for="exerciseType">Exercise Type:</label>
+                            <select id="exerciseType" required>
+                                <option value="">Select exercise type...</option>
+                                <option value="BodyPump">BodyPump</option>
+                                <option value="Cardio">Cardio</option>
+                                <option value="Cycle">Cycle</option>
+                                <option value="Walk">Walk</option>
+                                <option value="Workout">Workout</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="exerciseKcal">Calories Burned:</label>
+                            <input type="number" id="exerciseKcal" min="0" placeholder="Enter calories burned" required>
+                        </div>
+                        <div class="exercise-form-actions">
+                            <button class="btn btn-primary" onclick="saveExercise()">Save</button>
+                            <button class="btn btn-secondary" onclick="cancelExerciseForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <ul id="dayList" class="day-list">
         </ul>
+
+        <div class="add-notes-prompt" id="addNotesPrompt" style="display: none;">
+            <button class="btn-add-notes" onclick="showNotesForEditing()">+ Add Notes</button>
+        </div>
+
+        <div class="add-exercise-prompt" id="addExercisePrompt">
+            <button class="btn-add-exercise" onclick="showExerciseForm()">+ Add Exercise</button>
+        </div>
     </div>
 
     <script>
         let currentDate = null;
         let isTodayMode = false; // Track if we're in "day=today" mode
+        let appConfig = { goals: { daily_kcal: 2000, tdee: 2400 } }; // Default config
 
         $(document).ready(function() {
             loadNavbar();
+            loadAppConfig();
 
             // We'll restore expanded meals state after loading the day
 
@@ -705,6 +988,15 @@
                 // Navbar will automatically set active tab based on current page
             }).fail(function() {
                 console.error('Failed to load navbar');
+            });
+        }
+
+        function loadAppConfig() {
+            $.get('/day/config', function(data) {
+                appConfig = data;
+                console.log('Loaded app config:', appConfig);
+            }).fail(function() {
+                console.warn('Failed to load app config, using defaults');
             });
         }
 
@@ -782,6 +1074,9 @@
             
             // Load notes for this day
             loadNotesForDay(day);
+            
+            // Load exercises for this day
+            loadExercisesForDay(day);
             
             if (!day || !day.meals || day.meals.length === 0) {
                 $('#dayList').html(`
@@ -1154,11 +1449,34 @@
             
             // Get goal calories (default to 2000 if not set)
             const goalKcal = day?.goal_kcal || 2000;
+            
+            // Calculate remaining (goal - total)
             const remainingKcal = goalKcal - totalConsumed;
+            
+            // Calculate total exercise calories burned
+            let totalExerciseKcal = 0;
+            if (day && day.exercise_sessions) {
+                totalExerciseKcal = day.exercise_sessions.reduce((total, exercise) => total + exercise.kcal, 0);
+            }
+            
+            // Calculate adjusted TDEE with exercise
+            const tdee = appConfig.goals.tdee || 2400;
+            let adjustedTdee = tdee;
+            
+            // Only adjust TDEE if there are actual exercises logged
+            if (totalExerciseKcal > 0) {
+                const exerciseAdjustment = totalExerciseKcal - (tdee / 24);
+                adjustedTdee = tdee + exerciseAdjustment;
+            }
+            
+            // Calculate deficit (adjusted TDEE - total consumed)
+            const deficitKcal = Math.round(adjustedTdee - totalConsumed);
             
             // Update the display
             $('#totalKcal').text(totalConsumed);
+            $('#goalKcal').text(goalKcal);
             $('#remainingKcal').text(remainingKcal);
+            $('#deficitKcal').text(deficitKcal);
             
             // Style the remaining calories based on whether it's positive or negative
             const remainingElement = $('#remainingKcal');
@@ -1168,6 +1486,16 @@
                 remainingElement.css('color', '#ffa726');
             } else {
                 remainingElement.css('color', 'inherit');
+            }
+            
+            // Style the deficit calories
+            const deficitElement = $('#deficitKcal');
+            if (deficitKcal < 0) {
+                deficitElement.css('color', '#ff6b6b'); // Red for surplus (negative deficit)
+            } else if (deficitKcal > 500) {
+                deficitElement.css('color', '#28a745'); // Green for good deficit
+            } else {
+                deficitElement.css('color', 'inherit');
             }
         }
 
@@ -1378,6 +1706,182 @@
             $('#notesTextarea').val('');
             editNotes();
             notesExpanded = true;
+        }
+
+        // Exercise functionality
+        let exerciseExpanded = false;
+        let editingExerciseId = null;
+
+        function toggleExercise() {
+            const exerciseItem = $('#exerciseItem');
+            const isCollapsed = exerciseItem.hasClass('collapsed');
+            
+            if (isCollapsed) {
+                exerciseItem.removeClass('collapsed');
+                exerciseExpanded = true;
+            } else {
+                exerciseItem.addClass('collapsed');
+                exerciseExpanded = false;
+            }
+            
+            // Save expanded state to localStorage
+            localStorage.setItem(`dayPage_exerciseExpanded_${currentDate}`, exerciseExpanded.toString());
+        }
+
+        function showExerciseForm(exerciseData = null) {
+            // Show exercise section if hidden
+            $('#exerciseSection').show();
+            $('#addExercisePrompt').hide();
+            $('#exerciseItem').removeClass('collapsed');
+            
+            // Reset form
+            $('#exerciseType').val('');
+            $('#exerciseKcal').val('');
+            editingExerciseId = null;
+            
+            // If editing, populate form
+            if (exerciseData) {
+                $('#exerciseType').val(exerciseData.type);
+                $('#exerciseKcal').val(exerciseData.kcal);
+                editingExerciseId = exerciseData.id;
+            }
+            
+            $('#exerciseForm').show();
+            exerciseExpanded = true;
+        }
+
+        function cancelExerciseForm() {
+            $('#exerciseForm').hide();
+            editingExerciseId = null;
+            
+            // Check if there are any exercises, if not hide section
+            const hasExercises = currentDayData && currentDayData.exercise_sessions && currentDayData.exercise_sessions.length > 0;
+            if (!hasExercises) {
+                $('#exerciseSection').hide();
+                $('#addExercisePrompt').show();
+            }
+        }
+
+        function saveExercise() {
+            const type = $('#exerciseType').val().trim();
+            const kcal = parseInt($('#exerciseKcal').val());
+            
+            if (!type || !kcal || kcal <= 0) {
+                alert('Please fill in all fields with valid values.');
+                return;
+            }
+            
+            // Get current exercise sessions or initialize empty array
+            const currentExercises = currentDayData?.exercise_sessions || [];
+            
+            if (editingExerciseId !== null) {
+                // Update existing exercise
+                currentExercises[editingExerciseId] = { type, kcal };
+            } else {
+                // Add new exercise
+                currentExercises.push({ type, kcal });
+            }
+            
+            // Update the day document with exercise sessions
+            $.ajax({
+                url: `/day/${currentDate}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ exercise_sessions: currentExercises }),
+                success: function(response) {
+                    console.log('Exercise saved successfully');
+                    // Update current day data
+                    currentDayData.exercise_sessions = currentExercises;
+                    updateExerciseDisplay();
+                    updateSummaryPanel(currentDayData); // Recalculate deficit with exercises
+                    cancelExerciseForm();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error saving exercise:', error);
+                    alert('Error saving exercise: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                }
+            });
+        }
+
+        function deleteExercise(index) {
+            if (!confirm('Are you sure you want to delete this exercise?')) {
+                return;
+            }
+            
+            const currentExercises = currentDayData?.exercise_sessions || [];
+            currentExercises.splice(index, 1);
+            
+            // Update the day document
+            $.ajax({
+                url: `/day/${currentDate}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ exercise_sessions: currentExercises }),
+                success: function(response) {
+                    console.log('Exercise deleted successfully');
+                    currentDayData.exercise_sessions = currentExercises;
+                    updateExerciseDisplay();
+                    updateSummaryPanel(currentDayData); // Recalculate deficit
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting exercise:', error);
+                    alert('Error deleting exercise: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                }
+            });
+        }
+
+        function updateExerciseDisplay() {
+            const exercises = currentDayData?.exercise_sessions || [];
+            const exerciseSection = $('#exerciseSection');
+            const addExercisePrompt = $('#addExercisePrompt');
+            const exerciseList = $('#exerciseList');
+            const exerciseSummary = $('#exerciseSummary');
+            
+            if (exercises.length > 0) {
+                // Show exercise section
+                exerciseSection.show();
+                addExercisePrompt.hide();
+                
+                // Update summary
+                const totalKcal = exercises.reduce((sum, ex) => sum + ex.kcal, 0);
+                const exerciseCount = exercises.length;
+                exerciseSummary.text(`${exerciseCount} session${exerciseCount !== 1 ? 's' : ''} • ${totalKcal} kcal burned`);
+                
+                // Update exercise list
+                let html = '';
+                exercises.forEach((exercise, index) => {
+                    html += `
+                        <div class="exercise-list-item">
+                            <div class="exercise-details">
+                                <div class="exercise-type">${escapeHtml(exercise.type)}</div>
+                                <div class="exercise-kcal">${exercise.kcal} kcal burned</div>
+                            </div>
+                            <div class="exercise-item-actions">
+                                <button class="btn-delete-exercise" onclick="deleteExercise(${index})" title="Delete exercise">×</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                exerciseList.html(html);
+                
+                // Restore expanded state
+                const savedExerciseExpanded = localStorage.getItem(`dayPage_exerciseExpanded_${currentDate}`);
+                if (savedExerciseExpanded === 'false') {
+                    $('#exerciseItem').addClass('collapsed');
+                    exerciseExpanded = false;
+                } else {
+                    $('#exerciseItem').removeClass('collapsed');
+                    exerciseExpanded = true;
+                }
+            } else {
+                // Hide exercise section and show add prompt
+                exerciseSection.hide();
+                addExercisePrompt.show();
+            }
+        }
+
+        function loadExercisesForDay(day) {
+            updateExerciseDisplay();
         }
 
         function escapeHtml(text) {
