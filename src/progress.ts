@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { MongoStore } from './mongo';
 import { Day } from './types/collections.js';
+import { appConfig } from './config.js';
 
 export function makeProgressRouter(mongo: MongoStore): Router {
     const router = Router();
@@ -64,17 +65,35 @@ router.get('/:yyyymm', async (req, res) => {
 
                 // Only include days where food was actually consumed
                 if (totalConsumed > 0) {
-                    // Get goal from day or use default
-                    const goalKcal = dayData.goal_kcal || 2000;
+                    // Calculate total exercise calories burned
+                    let totalExerciseKcal = 0;
+                    if (dayData.exercise_sessions) {
+                        totalExerciseKcal = dayData.exercise_sessions.reduce((total, exercise) => total + exercise.kcal, 0);
+                    }
                     
-                    // Calculate deficit (positive = deficit, negative = surplus)
-                    const deficit = goalKcal - totalConsumed;
+                    // Calculate adjusted TDEE with exercise (same logic as day.html)
+                    const tdee = appConfig.goals.tdee || 2400;
+                    let adjustedTdee = tdee;
+                    
+                    // Only adjust TDEE if there are actual exercises logged
+                    if (totalExerciseKcal > 0) {
+                        const exerciseAdjustment = totalExerciseKcal - (tdee / 24);
+                        adjustedTdee = tdee + exerciseAdjustment;
+                    }
+                    
+                    // Calculate deficit using adjusted TDEE (positive = deficit, negative = surplus)
+                    const deficit = Math.round(adjustedTdee - totalConsumed);
+                    
+                    // Get goal from day or use default (for display purposes)
+                    const goalKcal = dayData.goal_kcal || 2000;
                     
                     progressData.push({
                         date: formatDateForChart(year, month, day),
                         consumed: totalConsumed,
                         goal: goalKcal,
-                        deficit: deficit
+                        deficit: deficit,
+                        exerciseKcal: totalExerciseKcal,
+                        adjustedTdee: adjustedTdee
                     });
                 }
             }
