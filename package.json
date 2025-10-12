@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "test:playwright": "playwright test",
     "pw": "playwright test",
-    "pwh": "npx playwright test --headed"
+    "pwh": "npx playwright test --headed --workers=1 --serial"
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.9",

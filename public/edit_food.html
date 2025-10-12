@@ -62,6 +62,7 @@
                     <div id="quantities-container">
                         <!-- Quantity rows will be added dynamically by JavaScript -->
                     </div>
+                    <button type="button" id="add-quantity-btn" class="add-quantity-btn">Add Quantity</button>
                 </div>
 
                 <div class="form-actions">
@@ -97,11 +98,6 @@
                 const predefinedOptions = ['portion', 'tsp', 'tbsp', 'cup'];
                 const isCustom = name && !predefinedOptions.includes(name);
                 
-                // Determine if this should be an "add" or "delete" button
-                const hasValues = name || weight || kcal;
-                const buttonClass = hasValues ? 'remove-quantity-btn' : 'add-quantity-btn';
-                const buttonText = hasValues ? 'Delete' : 'Add';
-                
                 $row.html(`
                     <div class="quantity-type-weight-row">
                         <select class="quantity-name">
@@ -123,7 +119,8 @@
                             </select>
                         </div>
                         <div class="calories-per-100g" style="font-size: 0.8rem; color: #666; margin-left: 10px;"></div>
-                        <button type="button" class="quantity-action-btn ${buttonClass}">${buttonText}</button>
+                        <button type="button" class="quantity-save-btn">Save</button>
+                        <button type="button" class="quantity-delete-btn">Delete</button>
                     </div>
                 `);
                 
@@ -144,51 +141,98 @@
                 // Add event listeners for weight and calorie inputs to trigger calculation
                 $row.find('.quantity-weight, .quantity-kcal').on('input change', function() {
                     updateQuantityCaloriesPer100g($row);
-                    
-                    // Only calculate main field if it's empty or 0
-                    const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
-                    if (mainKcalValue === 0) {
-                        calculateCaloriesFromQuantities();
-                    }
                 });
                 
                 // Add event listener for calories unit change to trigger recalculation
                 $row.find('.quantity-calories-unit').on('change', function() {
                     updateQuantityCaloriesPer100g($row);
-                    
-                    const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
-                    if (mainKcalValue === 0) {
-                        calculateCaloriesFromQuantities();
-                    }
                 });
 
-                // Add button functionality
-                const $actionBtn = $row.find('.quantity-action-btn');
-                $actionBtn.on('click', function() {
-                    if ($(this).hasClass('add-quantity-btn')) {
-                        // Convert to delete button and add a new empty row
-                        $(this).removeClass('add-quantity-btn').addClass('remove-quantity-btn').text('Delete');
-                        addQuantityRow(); // Add a new empty row
-                    } else {
-                        // Remove this row
-                        $row.remove();
-                        
-                        // Make sure there's always at least one row
-                        if ($('#quantities-container .quantity-row').length === 0) {
-                            addQuantityRow();
-                        }
-                        
-                        // Recalculate after removing a row
-                        const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
-                        if (mainKcalValue === 0) {
-                            calculateCaloriesFromQuantities();
-                        }
-                        
-                        // Update all remaining rows' individual displays
-                        $('.quantity-row').each(function() {
-                            updateQuantityCaloriesPer100g($(this));
-                        });
+                // Add Save button functionality
+                $row.find('.quantity-save-btn').on('click', function() {
+                    const weight = parseFloat($row.find('.quantity-weight').val());
+                    const caloriesValue = parseFloat($row.find('.quantity-kcal').val());
+                    const caloriesUnit = $row.find('.quantity-calories-unit').val();
+                    const $kcalPer100gField = $('#kcal-per-100g');
+                    const mainCaloriesValue = parseFloat($kcalPer100gField.val()) || 0;
+                    
+                    // Check if weight is provided
+                    if (!weight || weight <= 0) {
+                        alert('Please enter a weight before saving.');
+                        return;
                     }
+                    
+                    // If main calories field is empty, quantity calories is mandatory
+                    if (mainCaloriesValue === 0) {
+                        if (!caloriesValue || caloriesValue <= 0) {
+                            alert('Please enter calories for this quantity (main calories per 100g field is empty).');
+                            return;
+                        }
+                        
+                        // Convert kJ to kcal if needed (1 kcal = 4.184 kJ)
+                        let kcalValue = caloriesValue;
+                        if (caloriesUnit === 'kj') {
+                            kcalValue = caloriesValue / 4.184;
+                        }
+                        
+                        // Calculate calories per 100g: (kcal / weight) * 100
+                        let caloriesPer100g = (kcalValue / weight) * 100;
+                        
+                        // Get the main calories unit and convert if needed
+                        const $mainCaloriesUnit = $('#main-calories-unit');
+                        if ($mainCaloriesUnit.val() === 'kj') {
+                            caloriesPer100g = caloriesPer100g * 4.184;
+                        }
+                        
+                        // Update the main calories per 100g field
+                        $kcalPer100gField.val(Math.round(caloriesPer100g));
+                        
+                        // Show visual feedback
+                        $kcalPer100gField.css('background-color', 'var(--yellow-faint)');
+                        setTimeout(() => {
+                            $kcalPer100gField.css('background-color', '');
+                        }, 1000);
+                    }
+                    // If main calories field has a value, quantity calories is optional
+                    else {
+                        // If quantity calories is provided, still update the main field
+                        if (caloriesValue && caloriesValue > 0) {
+                            // Convert kJ to kcal if needed (1 kcal = 4.184 kJ)
+                            let kcalValue = caloriesValue;
+                            if (caloriesUnit === 'kj') {
+                                kcalValue = caloriesValue / 4.184;
+                            }
+                            
+                            // Calculate calories per 100g: (kcal / weight) * 100
+                            let caloriesPer100g = (kcalValue / weight) * 100;
+                            
+                            // Get the main calories unit and convert if needed
+                            const $mainCaloriesUnit = $('#main-calories-unit');
+                            if ($mainCaloriesUnit.val() === 'kj') {
+                                caloriesPer100g = caloriesPer100g * 4.184;
+                            }
+                            
+                            // Update the main calories per 100g field
+                            $kcalPer100gField.val(Math.round(caloriesPer100g));
+                            
+                            // Show visual feedback
+                            $kcalPer100gField.css('background-color', 'var(--yellow-faint)');
+                            setTimeout(() => {
+                                $kcalPer100gField.css('background-color', '');
+                            }, 1000);
+                        }
+                    }
+                    
+                    // Clear the quantity kcal input after saving
+                    $row.find('.quantity-kcal').val('');
+                    
+                    // Update the display
+                    updateQuantityCaloriesPer100g($row);
+                });
+
+                // Add Delete button functionality
+                $row.find('.quantity-delete-btn').on('click', function() {
+                    $row.remove();
                 });
                 
                 $container.append($row);
@@ -261,54 +305,11 @@
                 }
             }
 
-            function calculateCaloriesFromQuantities() {
-                const $kcalPer100gField = $('#kcal-per-100g');
-                const $mainCaloriesUnit = $('#main-calories-unit');
-                
-                // Find the first quantity row that has both weight and kcal filled
-                $('.quantity-row').each(function() {
-                    const weight = parseFloat($(this).find('.quantity-weight').val());
-                    const caloriesValue = parseFloat($(this).find('.quantity-kcal').val());
-                    const caloriesUnit = $(this).find('.quantity-calories-unit').val();
-                    
-                    if (weight > 0 && caloriesValue > 0) {
-                        // Convert kJ to kcal if needed (1 kcal = 4.184 kJ)
-                        let kcalValue = caloriesValue;
-                        if (caloriesUnit === 'kj') {
-                            kcalValue = caloriesValue / 4.184;
-                        }
-                        
-                        // Calculate calories per 100g: (kcal / weight) * 100
-                        let caloriesPer100g = (kcalValue / weight) * 100;
-                        
-                        // Convert to kJ if main field is set to kJ
-                        if ($mainCaloriesUnit.val() === 'kj') {
-                            caloriesPer100g = caloriesPer100g * 4.184;
-                        }
-                        
-                        $kcalPer100gField.val(Math.round(caloriesPer100g));
-                        
-                        // Show a brief visual feedback
-                        $kcalPer100gField.css('background-color', 'var(--yellow-faint)');
-                        setTimeout(() => {
-                            $kcalPer100gField.css('background-color', '');
-                        }, 1000);
-                        
-                        return false; // Break out of each loop
-                    }
-                });
-            }
 
-            // Remove functionality for initial row
-            $('.remove-quantity-btn').first().on('click', function() {
-                $(this).parent().remove();
-            });
 
-            // Add change event listener for initial row
-            $('.quantity-name').first().on('change', function() {
-                if ($(this).val() === 'custom') {
-                    convertToTextInput(this);
-                }
+            // Add Quantity button functionality
+            $('#add-quantity-btn').on('click', function() {
+                addQuantityRow();
             });
 
             // Add event listener for main calories unit conversion
@@ -626,32 +627,49 @@
             box-shadow: 0 0 0 2px var(--yellow-faint);
         }
 
-        .quantity-action-btn {
+        .quantity-save-btn,
+        .quantity-delete-btn {
             border: none;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 0.25rem;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            min-width: 70px;
+            min-width: 60px;
         }
 
-        .add-quantity-btn {
-            background-color: var(--yellow-strongest);
-            color: black;
+        .quantity-save-btn {
+            background-color: #28a745;
+            color: white;
         }
 
-        .add-quantity-btn:hover {
-            background-color: var(--dark-yellow);
+        .quantity-save-btn:hover {
+            background-color: #218838;
         }
 
-        .remove-quantity-btn {
+        .quantity-delete-btn {
             background-color: #dc3545;
             color: white;
         }
 
-        .remove-quantity-btn:hover {
+        .quantity-delete-btn:hover {
             background-color: #c82333;
+        }
+
+        #add-quantity-btn {
+            background-color: var(--yellow-strongest);
+            color: black;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        #add-quantity-btn:hover {
+            background-color: var(--dark-yellow);
         }
 
         .form-actions {
@@ -704,7 +722,7 @@
             
             .quantity-calories-action-row {
                 display: flex;
-                gap: 8px;
+                gap: 6px;
                 align-items: center;
             }
             
@@ -712,9 +730,12 @@
                 flex: 1;
             }
             
-            .quantity-action-btn {
+            .quantity-save-btn,
+            .quantity-delete-btn {
                 flex: 0 0 auto;
-                min-width: 80px;
+                min-width: 50px;
+                padding: 4px 8px;
+                font-size: 0.8rem;
             }
             
             .form-actions {

@@ -7,9 +7,11 @@ export class FoodQuantityComponent {
   readonly quantityItem: Locator;
   readonly quantityNameSelect: Locator;
   readonly quantityNameInput: Locator;
+  readonly quantityUnitSelect: Locator;
   readonly weightInput: Locator;
   readonly caloriesInput: Locator;
   readonly caloriesPer100g: Locator;
+  readonly saveButton: Locator;
   readonly deleteButton: Locator;
 
   constructor(page: Page, quantityItem: Locator) {
@@ -17,10 +19,12 @@ export class FoodQuantityComponent {
     this.quantityItem = quantityItem;
     this.quantityNameSelect = quantityItem.locator('select.quantity-name');
     this.quantityNameInput = quantityItem.locator('input.quantity-name');
+    this.quantityUnitSelect = quantityItem.locator('.quantity-calories-unit');
     this.weightInput = quantityItem.locator('.quantity-weight');
     this.caloriesInput = quantityItem.locator('.quantity-kcal');
     this.caloriesPer100g = quantityItem.locator('.calories-per-100g');
-    this.deleteButton = quantityItem.locator('.remove-quantity-btn');
+    this.saveButton = quantityItem.locator('.quantity-save-btn');
+    this.deleteButton = quantityItem.locator('.quantity-delete-btn');
   }
 
   async selectQuantity(quantityType: string) {
@@ -38,6 +42,10 @@ export class FoodQuantityComponent {
 
   async fillCalories(calories: string) {
     await this.caloriesInput.fill(calories);
+  }
+
+  async save() {
+    await this.saveButton.click();
   }
 
   async triggerCalculation() {
@@ -61,6 +69,8 @@ export class EditFoodPage extends BasePage {
   readonly foodForm: Locator;
   readonly foodNameInput: Locator;
   readonly foodBrandInput: Locator;
+  readonly kcalPer100g: Locator;
+  readonly selectCaloriesUnit: Locator;
   readonly addQuantityButton: Locator;
   readonly saveFoodButton: Locator;
   readonly cancelFoodButton: Locator;
@@ -74,7 +84,9 @@ export class EditFoodPage extends BasePage {
     this.foodForm = page.locator('#food-form');
     this.foodNameInput = page.locator('#food-name');
     this.foodBrandInput = page.locator('#food-brand');
-    this.addQuantityButton = page.locator('.add-quantity-btn');
+    this.kcalPer100g= page.locator('#kcal-per-100g');
+    this.selectCaloriesUnit = page.locator('#main-calories-unit')
+    this.addQuantityButton = page.locator('#add-quantity-btn');
     this.saveFoodButton = page.locator('#save-btn');
     this.cancelFoodButton = page.locator('#cancel-btn');
     this.deleteFoodButton = page.locator('#delete-btn'); // Need to check if this exists
