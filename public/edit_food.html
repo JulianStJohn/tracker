@@ -122,6 +122,7 @@
                                 <option value="kj">kJ</option>
                             </select>
                         </div>
+                        <div class="calories-per-100g" style="font-size: 0.8rem; color: #666; margin-left: 10px;"></div>
                         <button type="button" class="quantity-action-btn ${buttonClass}">${buttonText}</button>
                     </div>
                 `);
@@ -140,6 +141,27 @@
                     }
                 });
                 
+                // Add event listeners for weight and calorie inputs to trigger calculation
+                $row.find('.quantity-weight, .quantity-kcal').on('input change', function() {
+                    updateQuantityCaloriesPer100g($row);
+                    
+                    // Only calculate main field if it's empty or 0
+                    const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
+                    if (mainKcalValue === 0) {
+                        calculateCaloriesFromQuantities();
+                    }
+                });
+                
+                // Add event listener for calories unit change to trigger recalculation
+                $row.find('.quantity-calories-unit').on('change', function() {
+                    updateQuantityCaloriesPer100g($row);
+                    
+                    const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
+                    if (mainKcalValue === 0) {
+                        calculateCaloriesFromQuantities();
+                    }
+                });
+
                 // Add button functionality
                 const $actionBtn = $row.find('.quantity-action-btn');
                 $actionBtn.on('click', function() {
@@ -155,10 +177,27 @@
                         if ($('#quantities-container .quantity-row').length === 0) {
                             addQuantityRow();
                         }
+                        
+                        // Recalculate after removing a row
+                        const mainKcalValue = parseFloat($('#kcal-per-100g').val()) || 0;
+                        if (mainKcalValue === 0) {
+                            calculateCaloriesFromQuantities();
+                        }
+                        
+                        // Update all remaining rows' individual displays
+                        $('.quantity-row').each(function() {
+                            updateQuantityCaloriesPer100g($(this));
+                        });
                     }
                 });
                 
                 $container.append($row);
+                
+                // Update calories per 100g display if row has initial values
+                if (weight && kcal) {
+                    updateQuantityCaloriesPer100g($row);
+                }
+                
                 quantityCounter++;
             }
 
@@ -197,6 +236,29 @@
                 // Replace the text input with select
                 $(textInput).replaceWith($select);
                 return $select[0];
+            }
+
+            function updateQuantityCaloriesPer100g($row) {
+                const weight = parseFloat($row.find('.quantity-weight').val());
+                const caloriesValue = parseFloat($row.find('.quantity-kcal').val());
+                const caloriesUnit = $row.find('.quantity-calories-unit').val();
+                const $displayElement = $row.find('.calories-per-100g');
+                
+                if (weight > 0 && caloriesValue > 0) {
+                    // Convert kJ to kcal if needed (1 kcal = 4.184 kJ)
+                    let kcalValue = caloriesValue;
+                    if (caloriesUnit === 'kj') {
+                        kcalValue = caloriesValue / 4.184;
+                    }
+                    
+                    // Calculate calories per 100g: (kcal / weight) * 100
+                    const caloriesPer100g = (kcalValue / weight) * 100;
+                    
+                    // Display the calculated value
+                    $displayElement.text(Math.round(caloriesPer100g));
+                } else {
+                    $displayElement.text('');
+                }
             }
 
             function calculateCaloriesFromQuantities() {

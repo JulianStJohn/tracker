@@ -1,3 +1,4 @@
+<div id="test-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 10px; background-color: #ff6b6b; z-index: 9999; color: white; font-size: 8px; line-height: 10px; text-align: center; font-weight: bold;">TEST DATABASE</div>
 <div id="navbar">
       <div class="navbar-title">Tracker</div>
       
@@ -227,15 +228,39 @@
         window.location.href = '/auth/logout';
     }
 
+    // Check if we're in test mode and show indicator
+    function checkTestMode() {
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                if (config.isTestDb) {
+                    const testIndicator = document.getElementById('test-indicator');
+                    if (testIndicator) {
+                        testIndicator.style.display = 'block';
+                        // Adjust navbar position to account for test indicator
+                        const navbar = document.getElementById('navbar');
+                        if (navbar) {
+                            navbar.style.marginTop = '10px';
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.warn('Failed to check test mode:', error);
+            });
+    }
+
     // Initialize navbar when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             setActiveTab();
             setupNavigation();
+            checkTestMode();
         });
     } else {
         setActiveTab();
         setupNavigation();
+        checkTestMode();
     }
 
     // Expose functions globally for manual activation if needed

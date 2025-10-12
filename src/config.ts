@@ -17,12 +17,17 @@ import * as fs from 'node:fs';
 // ---- Config ----
 
 export const COOKIE_SECRET = process.env['COOKIE_SECRET']
-export const DB_NAME = process.env['DB_NAME']
+
+// Check for test database flag
+export const IS_TEST_DB = process.argv.includes("db=tracker_test");
+export const DB_NAME = IS_TEST_DB ? "tracker_test" : (process.env['DB_NAME'] || "tracker");
+
 export const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
 export const MONGO_URI = process.env.MONGO_URI ? process.env.MONGO_URI : "" 
 
 export const SKIP_AUTH = process.env.SKIP_AUTH === "1" || process.argv.includes("--no-auth");
 if(SKIP_AUTH) console.log("SKIP_AUTH: No Auth")
+if(IS_TEST_DB) console.log(`TEST_DB: Using database '${DB_NAME}'`)
 
 // Never allow bypass in production
 if (process.env.NODE_ENV === "production" && SKIP_AUTH) {

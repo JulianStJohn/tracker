@@ -52,6 +52,15 @@ app.get("/ping", (req, res) => {
   res.json({ value: String("ok") });
 });
 
+// Endpoint to get app configuration and environment info
+app.get("/api/config", (req, res) => {
+  res.json({ 
+    isTestDb: config.IS_TEST_DB,
+    dbName: config.DB_NAME,
+    goals: config.appConfig.goals
+  });
+});
+
 app.get("/", (req, res) => {
   res.redirect("/day.html");
 });
