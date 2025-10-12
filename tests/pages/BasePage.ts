@@ -15,4 +15,8 @@ export class BasePage {
   async waitForPageLoad() {
     await this.page.waitForLoadState('networkidle');
   }
+
+  async sleep(seconds){
+    await this.page.waitForTimeout(seconds * 1000);
+  }
 }

@@ -2,6 +2,123 @@ import { Page, Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { NavbarComponent } from './NavbarComponent';
 
+export class MealItemComponent {
+  readonly page: Page;
+  readonly mealItem: Locator;
+  
+  // Meal header elements
+  readonly mealHeader: Locator;
+  readonly mealInfo: Locator;
+  readonly mealTitle: Locator;
+  readonly mealName: Locator;
+  readonly totalCalories: Locator;
+  
+  // Action buttons in header
+  readonly mealActions: Locator;
+  readonly addFoodToMealButton: Locator;
+  readonly addSavedMealButton: Locator;
+  readonly editMealButton: Locator;
+  
+  // Meal content
+  readonly mealFoods: Locator;
+  readonly foodItems: Locator;
+  readonly emptyMealMessage: Locator;
+  
+  // Footer buttons
+  readonly mealFooter: Locator;
+  readonly deleteMealButton: Locator;
+  readonly addMealBelowButton: Locator;
+  readonly saveMealTemplateButton: Locator;
+
+  constructor(page: Page, mealItem: Locator) {
+    this.page = page;
+    this.mealItem = mealItem;
+    
+    // Meal header elements
+    this.mealHeader = mealItem.locator('.meal-header');
+    this.mealInfo = mealItem.locator('.meal-info');
+    this.mealTitle = mealItem.locator('.meal-title');
+    this.mealName = this.mealTitle; // Alias for convenience
+    this.totalCalories = this.mealTitle; // The title contains "MealName - XXX kcal"
+    
+    // Action buttons in header
+    this.mealActions = mealItem.locator('.meal-actions');
+    this.addFoodToMealButton = mealItem.locator('.btn-add-food-to-meal');
+    this.addSavedMealButton = mealItem.locator('.btn-add-meal-to-meal');
+    this.editMealButton = mealItem.locator('.btn-edit-meal');
+    
+    // Meal content
+    this.mealFoods = mealItem.locator('.meal-foods');
+    this.foodItems = mealItem.locator('.food-item');
+    this.emptyMealMessage = mealItem.locator('.empty-meal-message');
+    
+    // Footer buttons
+    this.mealFooter = mealItem.locator('.meal-footer');
+    this.deleteMealButton = mealItem.locator('.btn-delete-meal-footer');
+    this.addMealBelowButton = mealItem.locator('.btn-add-meal-below');
+    this.saveMealTemplateButton = mealItem.locator('.btn-save-meal');
+  }
+
+  async toggleExpanded() {
+    await this.mealHeader.click();
+  }
+
+  async isExpanded() {
+    return !(await this.mealItem.evaluate((el) => el.classList.contains('collapsed')));
+  }
+
+  async addFoodToMeal() {
+    await this.addFoodToMealButton.click();
+  }
+
+  async addSavedMeal() {
+    await this.addSavedMealButton.click();
+  }
+
+  async editMeal() {
+    await this.editMealButton.click();
+  }
+
+  async deleteMeal() {
+    // Handle confirmation dialog
+    this.page.on('dialog', dialog => dialog.accept());
+    await this.deleteMealButton.click();
+  }
+
+  async addMealBelow() {
+    await this.addMealBelowButton.click();
+  }
+
+  async saveMealTemplate() {
+    await this.saveMealTemplateButton.click();
+  }
+
+  async getMealName() {
+    const titleText = await this.mealTitle.textContent();
+    // Extract meal name from "MealName - XXX kcal" format
+    return titleText?.split(' - ')[0] || '';
+  }
+
+  async getTotalCalories() {
+    const titleText = await this.mealTitle.textContent();
+    // Extract calories from "MealName - XXX kcal" format
+    const caloriesMatch = titleText?.match(/(\d+) kcal/);
+    return caloriesMatch ? parseInt(caloriesMatch[1]) : 0;
+  }
+
+  async getFoodCount() {
+    return await this.foodItems.count();
+  }
+
+  async getFoodNames() {
+    return await this.foodItems.locator('.food-name').allTextContents();
+  }
+
+  async isEmpty() {
+    return await this.emptyMealMessage.isVisible();
+  }
+}
+
 export class DayPage extends BasePage {
   readonly navbar: NavbarComponent;
   
@@ -151,5 +268,30 @@ export class DayPage extends BasePage {
 
   async getCurrentDate() {
     return await this.currentDateDisplay.textContent();
+  }
+
+  async getMealItems(): Promise<MealItemComponent[]> {
+    const mealItemsCount = await this.mealItems.count();
+    const mealComponents: MealItemComponent[] = [];
+    
+    for (let i = 0; i < mealItemsCount; i++) {
+      const mealItem = this.mealItems.nth(i);
+      await mealItem.waitFor({ state: 'visible' });
+      mealComponents.push(new MealItemComponent(this.page, mealItem));
+    }
+    
+    return mealComponents;
+  }
+
+  async getMealItem(index: number): Promise<MealItemComponent> {
+    const mealItem = this.mealItems.nth(index);
+    await mealItem.waitFor({ state: 'visible' });
+    return new MealItemComponent(this.page, mealItem);
+  }
+
+  async getMealItemByName(mealName: string): Promise<MealItemComponent> {
+    const mealItem = this.mealItems.filter({ has: this.page.locator('.meal-title', { hasText: mealName }) });
+    await mealItem.waitFor({ state: 'visible' });
+    return new MealItemComponent(this.page, mealItem);
   }
 }

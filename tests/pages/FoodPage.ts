@@ -8,6 +8,7 @@ export class FoodPage_FoodItem {
   readonly foodKcal: Locator;
   readonly editFoodButton: Locator;
   readonly selectFoodButton: Locator;
+  readonly addToMealQuantityMultiplier: Locator;
 
   constructor(foodItem: Locator) { 
     this.parentDiv = foodItem
@@ -16,6 +17,8 @@ export class FoodPage_FoodItem {
     this.foodKcal= this.parentDiv.locator('.food-kcal');
     this.editFoodButton = this.parentDiv.locator('.edit-food-btn');
     this.selectFoodButton = this.parentDiv.locator('.select-food-btn');
+
+    this.addToMealQuantityMultiplier = this.parentDiv.locator('input.quantity-multiplier-meal')
   }
 
 }
@@ -71,7 +74,8 @@ export class FoodPage extends BasePage {
   }
 
   async getFoodItem(foodName: string) {
-    return new FoodPage_FoodItem(this.foodItems.filter({ hasText: foodName }));
+  
+    return new FoodPage_FoodItem((await this.foodItems).filter({ hasText: foodName }));
   }
 
   async editFood(foodName: string) {
