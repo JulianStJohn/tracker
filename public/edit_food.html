@@ -39,6 +39,11 @@
                     <input type="text" id="food-brand" name="brand" placeholder="Optional brand name">
                 </div>
 
+                <div class="form-group" id="barcode-group" style="display: none;">
+                    <label for="food-barcode">Barcode</label>
+                    <input type="text" id="food-barcode" name="barcode" placeholder="Product barcode" readonly>
+                </div>
+
                 <div class="form-group">
                     <label for="kcal-per-100g">Calories per 100g *</label>
                     <div class="calories-input-container">
@@ -81,10 +86,43 @@
             const urlParams = new URLSearchParams(window.location.search);
             const action = urlParams.get('action') || 'add';
             const foodId = urlParams.get('id');
+            const apiData = urlParams.get('api_data');
 
             // Update page title based on action
             if (action === 'edit') {
                 $('#page-title').text('Edit Food');
+            } else if (apiData) {
+                $('#page-title').text('Add Food from API');
+            }
+
+            // Pre-fill form with API data if available
+            if (apiData) {
+                try {
+                    const foodData = JSON.parse(apiData);
+                    $('#food-name').val(foodData.name || '');
+                    $('#food-brand').val(foodData.brand || '');
+                    $('#kcal-per-100g').val(foodData.kcal_per_100g || '');
+                    
+                    // Show and fill barcode field if from API
+                    if (foodData.barcode) {
+                        $('#food-barcode').val(foodData.barcode);
+                        $('#barcode-group').show();
+                    }
+                    
+                    // Fill in other nutritional fields if they exist in your form
+                    $('#protein-per-100g').val(foodData.protein_per_100g || '');
+                    $('#carbs-per-100g').val(foodData.carbs_per_100g || '');
+                    $('#fat-per-100g').val(foodData.fat_per_100g || '');
+                    $('#fiber-per-100g').val(foodData.fiber_per_100g || '');
+                    $('#sugar-per-100g').val(foodData.sugar_per_100g || '');
+                    $('#sodium-per-100g').val(foodData.sodium_per_100g || '');
+                    $('#salt-per-100g').val(foodData.salt_per_100g || '');
+                    
+                    // Store API quantities for later use
+                    window.apiQuantities = foodData.quantities || [];
+                } catch (error) {
+                    console.error('Error parsing API data:', error);
+                }
             }
 
             // Quantity management
@@ -380,6 +418,7 @@
                 const foodData = {
                     name: $('#food-name').val(),
                     brand: $('#food-brand').val(),
+                    barcode: $('#food-barcode').val() || null,
                     kcal_per_100g: kcalPer100g,
                     is_ingredient: $('#is-ingredient').is(':checked'),
                     quantities: quantities
@@ -448,6 +487,12 @@
                         $('#kcal-per-100g').val(food.kcal_per_100g);
                         $('#is-ingredient').prop('checked', food.is_ingredient);
                         
+                        // Show and populate barcode field if it exists
+                        if (food.barcode) {
+                            $('#food-barcode').val(food.barcode);
+                            $('#barcode-group').show();
+                        }
+                        
                         // Clear existing quantity rows
                         $('#quantities-container').empty();
                         
@@ -469,8 +514,16 @@
                     }
                 });
             } else {
-                // For new foods, initialize with one empty quantity row
-                addQuantityRow();
+                // For new foods, initialize quantity rows
+                if (window.apiQuantities && window.apiQuantities.length > 0) {
+                    // Add only the API-detected quantities, no empty row
+                    window.apiQuantities.forEach(quantity => {
+                        addQuantityRow(quantity.name, quantity.weight);
+                    });
+                } else {
+                    // Add one empty quantity row for manual entry
+                    addQuantityRow();
+                }
             }
         });
 

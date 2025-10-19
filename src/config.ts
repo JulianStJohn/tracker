@@ -44,6 +44,7 @@ export const {
   APP_BASE_URL,
 } = process.env as Record<string, string>;
 
+// SECURITY: Never log or expose this secret in client-side code
 export const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET 
 
 export const IS_LOCALHOST=APP_BASE_URL.includes("localhost")

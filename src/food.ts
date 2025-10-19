@@ -19,7 +19,8 @@ export function makeFoodRouter(mongo: MongoStore): Router {
         const regexConditions = tokens.map(token => ({
           $or: [
             { name: { $regex: token, $options: 'i' } },
-            { brand: { $regex: token, $options: 'i' } }
+            { brand: { $regex: token, $options: 'i' } },
+            { barcode: { $regex: token, $options: 'i' } }
           ]
         }));
         
@@ -104,6 +105,13 @@ export function makeFoodRouter(mongo: MongoStore): Router {
           food.brand = '';
         } else if (typeof food.brand !== 'string') {
           food.brand = '';
+        }
+
+        if (food.barcode !== undefined && typeof food.barcode !== 'string') {
+          validationErrors.push(`Food ${foodIdentifier}: barcode must be a string if provided (got: ${typeof food.barcode})`);
+          food.barcode = '';
+        } else if (typeof food.barcode !== 'string') {
+          food.barcode = '';
         }
         
         if (food.is_ingredient !== undefined && typeof food.is_ingredient !== 'boolean') {
@@ -224,7 +232,7 @@ export function makeFoodRouter(mongo: MongoStore): Router {
   // POST /food - Create a new food
   router.post("/", async (req: Request, res: Response) => {
     try {
-      const { name, brand, kcal_per_100g, is_ingredient, quantities } = req.body;
+      const { name, brand, barcode, kcal_per_100g, is_ingredient, quantities } = req.body;
 
       // Validation
       if (!name || typeof name !== 'string' || !name.trim()) {
@@ -270,6 +278,11 @@ export function makeFoodRouter(mongo: MongoStore): Router {
         foodData.brand = brand.trim();
       }
 
+      // Only include barcode if it's a non-empty string
+      if (barcode && typeof barcode === 'string' && barcode.trim()) {
+        (foodData as any).barcode = barcode.trim();
+      }
+
       const newFood = await mongo.createFood(foodData);
       res.status(201).json(newFood);
 
@@ -283,7 +296,7 @@ export function makeFoodRouter(mongo: MongoStore): Router {
   router.put("/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { name, brand, kcal_per_100g, is_ingredient, quantities } = req.body;
+      const { name, brand, barcode, kcal_per_100g, is_ingredient, quantities } = req.body;
 
       console.log(`\n=== PUT /food/${id} ===`);
       console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -355,6 +368,17 @@ export function makeFoodRouter(mongo: MongoStore): Router {
       // Only include brand if it's a non-empty string
       if (brand && typeof brand === 'string' && brand.trim()) {
         updateData.brand = brand.trim();
+      } else {
+        // Clear brand if empty
+        updateData.brand = undefined;
+      }
+
+      // Only include barcode if it's a non-empty string
+      if (barcode && typeof barcode === 'string' && barcode.trim()) {
+        (updateData as any).barcode = barcode.trim();
+      } else {
+        // Clear barcode if empty
+        (updateData as any).barcode = undefined;
       }
 
       console.log('Update data being sent to MongoDB:', JSON.stringify(updateData, null, 2));

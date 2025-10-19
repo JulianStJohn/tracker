@@ -71,6 +71,7 @@ const collectionDefinitions: Record<string, CollectionDefinition> = {
       _id: { bsonType: "objectId" },      
       name: { bsonType: "string", description: "Food name (required)" },
       brand: { bsonType: "string", description: "Food brand (optional)" },
+      barcode: { bsonType: "string", description: "Product barcode (optional)" },
       kcal_per_100g: { bsonType: ["int", "double"], description: "Calories per 100g (required)" },
       is_ingredient: { bsonType: "bool", description: "Whether this is an ingredient (required)" },
       quantities: {

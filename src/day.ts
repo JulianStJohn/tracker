@@ -303,7 +303,12 @@ export function makeDayRouter(mongo: MongoStore): Router {
       }
 
       if (!food) {
-        return res.status(404).json({ error: `Food not found: ${foodId}` });
+        // Create a temporary food object for single foods with 100 kcal per 100g
+        food = {
+          name: foodId,
+          kcal_per_100g: 100,
+          quantities: []
+        };
       }
 
       // Calculate calories for this portion

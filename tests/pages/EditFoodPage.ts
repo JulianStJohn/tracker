@@ -69,6 +69,8 @@ export class EditFoodPage extends BasePage {
   readonly foodForm: Locator;
   readonly foodNameInput: Locator;
   readonly foodBrandInput: Locator;
+  readonly barcodeGroup: Locator;
+  readonly barcodeInput: Locator;
   readonly kcalPer100g: Locator;
   readonly selectCaloriesUnit: Locator;
   readonly addQuantityButton: Locator;
@@ -84,6 +86,8 @@ export class EditFoodPage extends BasePage {
     this.foodForm = page.locator('#food-form');
     this.foodNameInput = page.locator('#food-name');
     this.foodBrandInput = page.locator('#food-brand');
+    this.barcodeGroup = page.locator('#barcode-group');
+    this.barcodeInput = page.locator('#food-barcode');
     this.kcalPer100g= page.locator('#kcal-per-100g');
     this.selectCaloriesUnit = page.locator('#main-calories-unit')
     this.addQuantityButton = page.locator('#add-quantity-btn');

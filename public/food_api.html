@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+    <title>API Food Search - Food Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="stylesheet" href="/css/tracker.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .api-search-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-section {
+            background: white;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.5rem;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--grey-five);
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--yellow-strongest);
+            box-shadow: 0 0 0 2px var(--yellow-faint);
+        }
+
+        .search-btn {
+            background-color: var(--yellow-strongest);
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            height: fit-content;
+        }
+
+        .search-btn:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        .search-btn:disabled {
+            background-color: var(--grey-two);
+            color: var(--grey-four);
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            background: white;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.5rem;
+            padding: 30px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--grey-four);
+            font-style: italic;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: red;
+            background-color: #ffeaea;
+            border-radius: 0.25rem;
+            margin: 20px 0;
+        }
+
+        .food-details {
+            display: grid;
+            gap: 25px;
+        }
+
+        .food-header {
+            border-bottom: 2px solid var(--yellow-strongest);
+            padding-bottom: 15px;
+        }
+
+        .food-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--grey-five);
+            margin-bottom: 8px;
+        }
+
+        .food-brand {
+            color: var(--grey-four);
+            font-size: 1.1rem;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .nutrition-item {
+            background: var(--yellow-faint);
+            border: 1px solid var(--yellow-stronger);
+            border-radius: 0.25rem;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .nutrition-label {
+            font-weight: bold;
+            color: var(--grey-five);
+            margin-bottom: 5px;
+        }
+
+        .nutrition-value {
+            font-size: 1.2rem;
+            color: var(--grey-five);
+        }
+
+        .nutrition-unit {
+            font-size: 0.9rem;
+            color: var(--grey-four);
+        }
+
+        .ingredients-section {
+            margin-top: 25px;
+        }
+
+        .ingredients-title {
+            font-weight: bold;
+            color: var(--grey-five);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .ingredients-text {
+            background: #f8f9fa;
+            border: 1px solid var(--grey-two);
+            border-radius: 0.25rem;
+            padding: 15px;
+            color: var(--grey-four);
+            line-height: 1.5;
+        }
+
+        .back-btn {
+            background-color: var(--grey-three);
+            color: var(--grey-five);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background-color: var(--grey-four);
+            color: white;
+        }
+
+        .add-to-db-btn {
+            background-color: var(--yellow-strongest);
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .add-to-db-btn:hover {
+            background-color: var(--dark-yellow);
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-group {
+                min-width: auto;
+            }
+
+            .nutrition-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="page-container">
+        <div id="navbar-container"></div>
+        
+        <div class="api-search-container">
+            <button class="back-btn" onclick="window.location.href='food.html'">
+                ← Back to Foods
+            </button>
+            
+            <h1>API Food Search</h1>
+            <p>Search for food items using their barcode to get nutritional information from OpenFoodFacts.</p>
+
+            <div class="search-section">
+                <form class="search-form" onsubmit="searchByBarcode(event)">
+                    <div class="form-group">
+                        <label for="barcode-input">Barcode Number</label>
+                        <input 
+                            type="text" 
+                            id="barcode-input" 
+                            placeholder="Enter barcode number..." 
+                            required
+                            pattern="[0-9]+"
+                            title="Please enter only numbers"
+                        >
+                    </div>
+                    <button type="submit" class="search-btn" id="search-btn">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-section" id="results-section">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            loadNavbar();
+        });
+
+        function loadNavbar() {
+            $('#navbar-container').load('/_navbar.html', function(response, status, xhr) {
+                if (status === "error") {
+                    console.error('Failed to load navbar:', xhr.status, xhr.statusText);
+                }
+            });
+        }
+
+        async function searchByBarcode(event) {
+            event.preventDefault();
+            
+            const barcode = $('#barcode-input').val().trim();
+            const searchBtn = $('#search-btn');
+            const resultsSection = $('#results-section');
+            
+            if (!barcode) {
+                alert('Please enter a barcode number');
+                return;
+            }
+
+            // Validate barcode format (numbers only)
+            if (!/^\d+$/.test(barcode)) {
+                alert('Barcode should contain only numbers');
+                return;
+            }
+
+            // Show loading state
+            searchBtn.prop('disabled', true).text('Searching...');
+            resultsSection.addClass('show').html('<div class="loading">Searching OpenFoodFacts database...</div>');
+
+            try {
+                // Call OpenFoodFacts API
+                const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+                const data = await response.json();
+
+                if (data.status === 1 && data.product) {
+                    redirectToEditForm(barcode, data.product);
+                } else {
+                    displayError('Product not found in OpenFoodFacts database. Please check the barcode number and try again.');
+                }
+            } catch (error) {
+                console.error('Error searching OpenFoodFacts:', error);
+                displayError('Failed to connect to OpenFoodFacts API. Please check your internet connection and try again.');
+            } finally {
+                // Reset search button
+                searchBtn.prop('disabled', false).text('Search');
+            }
+        }
+
+        function detectPacketSize(product) {
+            let weight = 0;
+            
+            // Check product name for weight patterns like "300g", "1.5kg", "500ml", etc.
+            const name = product.product_name || '';
+            const nameWeightMatch = name.match(/(\d+(?:\.\d+)?)\s*(g|kg|ml|l)\b/i);
+            
+            if (nameWeightMatch) {
+                const value = parseFloat(nameWeightMatch[1]);
+                const unit = nameWeightMatch[2].toLowerCase();
+                
+                // Convert to grams
+                switch (unit) {
+                    case 'kg':
+                        weight = value * 1000;
+                        break;
+                    case 'g':
+                        weight = value;
+                        break;
+                    case 'l':
+                        weight = value * 1000; // Assume 1ml = 1g for liquids
+                        break;
+                    case 'ml':
+                        weight = value;
+                        break;
+                }
+            }
+            
+            // If not found in name, check the quantity field
+            if (weight === 0 && product.quantity) {
+                const quantityWeightMatch = product.quantity.match(/(\d+(?:\.\d+)?)\s*(g|kg|ml|l)\b/i);
+                
+                if (quantityWeightMatch) {
+                    const value = parseFloat(quantityWeightMatch[1]);
+                    const unit = quantityWeightMatch[2].toLowerCase();
+                    
+                    // Convert to grams
+                    switch (unit) {
+                        case 'kg':
+                            weight = value * 1000;
+                            break;
+                        case 'g':
+                            weight = value;
+                            break;
+                        case 'l':
+                            weight = value * 1000; // Assume 1ml = 1g for liquids
+                            break;
+                        case 'ml':
+                            weight = value;
+                            break;
+                    }
+                }
+            }
+            
+            // If not found in quantity, check net_weight_value and net_weight_unit
+            if (weight === 0 && product.product_quantity_value && product.product_quantity_unit) {
+                const value = parseFloat(product.product_quantity_value);
+                const unit = product.product_quantity_unit.toLowerCase();
+                
+                if (!isNaN(value)) {
+                    switch (unit) {
+                        case 'kg':
+                            weight = value * 1000;
+                            break;
+                        case 'g':
+                            weight = value;
+                            break;
+                        case 'l':
+                            weight = value * 1000;
+                            break;
+                        case 'ml':
+                            weight = value;
+                            break;
+                    }
+                }
+            }
+            
+            // Only return weight if it's reasonable (between 1g and 10kg)
+            return (weight >= 1 && weight <= 10000) ? Math.round(weight) : 0;
+        }
+
+        function redirectToEditForm(barcode, product) {
+            // Extract nutritional information
+            const nutrients = product.nutriments || {};
+            const name = product.product_name || 'Unknown Product';
+            const brand = product.brands || 'Unknown Brand';
+            
+            // Get nutrition per 100g - convert values to numbers, using 0 if not available
+            const parseValue = (val) => val ? parseFloat(val) || 0 : 0;
+            
+            const calories = nutrients['energy-kcal_100g'] || (nutrients['energy_100g'] ? Math.round(nutrients['energy_100g'] / 4.184) : 0);
+            const protein = parseValue(nutrients['proteins_100g']);
+            const carbs = parseValue(nutrients['carbohydrates_100g']);
+            const fat = parseValue(nutrients['fat_100g']);
+            const fiber = parseValue(nutrients['fiber_100g']);
+            const sugar = parseValue(nutrients['sugars_100g']);
+            const sodium = parseValue(nutrients['sodium_100g']);
+            const salt = parseValue(nutrients['salt_100g']);
+
+            // Detect packet size from product name or quantity field
+            const packetWeight = detectPacketSize(product);
+            const quantities = [];
+            
+            // Add packet quantity if detected
+            if (packetWeight > 0) {
+                quantities.push({
+                    name: 'packet',
+                    weight: packetWeight
+                });
+            }
+
+            const foodData = {
+                name: name,
+                brand: brand,
+                barcode: barcode,
+                kcal_per_100g: calories,
+                protein_per_100g: protein,
+                carbs_per_100g: carbs,
+                fat_per_100g: fat,
+                fiber_per_100g: fiber,
+                sugar_per_100g: sugar,
+                sodium_per_100g: sodium,
+                salt_per_100g: salt,
+                quantities: quantities
+            };
+
+            // Redirect to edit_food.html with the data pre-filled
+            const params = new URLSearchParams();
+            params.append('action', 'add');
+            params.append('api_data', JSON.stringify(foodData));
+            
+            window.location.href = `edit_food.html?${params.toString()}`;
+        }
+
+        function displayError(message) {
+            const resultsSection = $('#results-section');
+            resultsSection.html(`<div class="error">${escapeHtml(message)}</div>`);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+
+    </script>
+</body>
+</html>

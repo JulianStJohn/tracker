@@ -17,6 +17,12 @@
         <button id="add-food-btn" class="add-food-btn" onclick="window.location.href='edit_food.html?action=add'">
             + Add Food
         </button>
+        <button id="api-search-btn" class="api-search-btn" onclick="window.location.href='food_api.html'">
+            API Search
+        </button>
+        <button id="single-btn" class="single-btn" onclick="addSingleFood()" style="display: none;">
+            Single
+        </button>
     </div>
     
     <div id="food-list-results">
@@ -100,6 +106,21 @@
         return div.innerHTML;
     }
     
+    // Store food data for calculations
+    let currentFoodData = {};
+    
+    // Global function for updating weight calculation
+    window.updateWeightCalculationMeal = function(foodId) {
+        const weight = parseInt($(`#weight-${foodId}`).val()) || 0;
+        if (weight <= 0) return;
+        
+        const food = currentFoodData[foodId];
+        if (food) {
+            const kcal = Math.round(food.kcal_per_100g * (weight / 100));
+            $(`#calories-${foodId}`).text(`${kcal} kcal`);
+        }
+    };
+    
     // Global function for selecting a food (can be overridden by parent page)
     // Only define default behavior if no custom selectFood function exists
     if (typeof window.selectFood !== 'function') {
@@ -113,6 +134,126 @@
     // Event listeners
     $('#food-search-input').on('input', searchFoods);
     $('#results-limit').on('change', searchFoods);
+    
+    // Check if we're in add-to-meal mode and show Single button
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'add-to-meal') {
+        $('#single-btn').show();
+    }
+    
+    // Global function for adding single food
+    window.addSingleFood = function() {
+        const searchText = $('#food-search-input').val().trim();
+        if (!searchText) {
+            alert('Please enter a food name in the search field first');
+            return;
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const dayParam = urlParams.get('day');
+        const mealParam = urlParams.get('meal');
+        
+        if (!dayParam || !mealParam) {
+            alert('Missing day or meal parameters');
+            return;
+        }
+        
+        // Create a fake food ID for the single food item
+        const singleFoodId = 'single-' + Date.now();
+        
+        // Create fake food data with 100 kcal per 100g and no quantities
+        const fakeFood = {
+            _id: singleFoodId,
+            name: searchText,
+            kcal_per_100g: 100,
+            quantities: []
+        };
+        
+        // Store the fake food data
+        currentFoodData[singleFoodId] = fakeFood;
+        
+        // Create and display the expanded food item
+        displaySingleFoodItem(fakeFood, dayParam, mealParam);
+    };
+    
+    function displaySingleFoodItem(food, dayParam, mealParam) {
+        // Create a food item div similar to search results
+        const foodItemHtml = `
+            <div class="food-item expanded" data-food-id="${food._id}">
+                <div class="food-info">
+                    <span class="food-name">${escapeHtml(food.name)}</span>
+                    <span class="food-kcal">${food.kcal_per_100g} kcal/100g</span>
+                </div>
+                <div class="quantity-selection">
+                    <h4>Add to Meal: ${food.name}</h4>
+                    <div class="food-base-info">
+                        <div class="food-calories">${food.kcal_per_100g} kcal per 100g</div>
+                    </div>
+                    
+                    <div class="quantity-controls-meal">
+                        <div class="quantity-fields-meal">
+                            <input type="number" 
+                                   class="weight-input-meal" 
+                                   id="weight-${food._id}"
+                                   value="100" 
+                                   min="1" 
+                                   step="1"
+                                   onchange="updateWeightCalculationMeal('${food._id}')">
+                            <span>g</span>
+                        </div>
+                        <div class="calculated-calories-meal" id="calories-${food._id}">
+                            ${food.kcal_per_100g} kcal
+                        </div>
+                    </div>
+                    
+                    <div class="quantity-actions">
+                        <button class="btn-add-to-meal" onclick="addSingleFoodToMeal('${food._id}', '${escapeHtml(food.name)}', '${dayParam}', '${mealParam}')">Add to Meal</button>
+                        <button class="btn-cancel" onclick="cancelSingleFood('${food._id}')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add to the beginning of food list results
+        $('#food-list-results').html(foodItemHtml + $('#food-list-results').html());
+    }
+    
+    // Global function for adding single food to meal
+    window.addSingleFoodToMeal = function(foodId, foodName, dayParam, mealParam) {
+        const weight = parseInt($(`#weight-${foodId}`).val()) || 0;
+        
+        if (weight <= 0) {
+            alert('Please enter a valid weight');
+            return;
+        }
+        
+        // Prepare data to send - use foodName directly since it's not in the database
+        const foodData = {
+            foodId: foodName, // Use the food name as ID since it doesn't exist in DB
+            weight: weight
+        };
+        
+        // Add food to meal via API
+        $.ajax({
+            url: `/day/${dayParam}/meals/${mealParam}/foods`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(foodData),
+            success: function(result) {
+                // Return to day view
+                window.location.href = `day.html?yyyymmdd=${dayParam}`;
+            },
+            error: function(xhr, status, error) {
+                console.error('Error adding food to meal:', error);
+                alert('Error adding food to meal: ' + (xhr.responseJSON?.error || 'Unknown error'));
+            }
+        });
+    };
+    
+    // Global function for canceling single food
+    window.cancelSingleFood = function(foodId) {
+        $(`.food-item[data-food-id="${foodId}"]`).remove();
+    };
     
     // Initial load
     searchFoods();
@@ -175,6 +316,37 @@
 
 .add-food-btn:hover {
     background-color: var(--dark-yellow);
+}
+
+.api-search-btn {
+    background-color: var(--grey-three);
+    color: var(--grey-five);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.api-search-btn:hover {
+    background-color: var(--grey-four);
+    color: white;
+}
+
+.single-btn {
+    background-color: var(--yellow-stronger);
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.single-btn:hover {
+    background-color: var(--yellow-strongest);
 }
 
 .loading, .error, .no-results {
@@ -307,5 +479,97 @@
     .food-actions {
         flex-direction: column;
     }
+}
+
+/* Styles for single food quantity selection */
+.quantity-selection {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 2px solid var(--yellow-strongest);
+    border-radius: 8px;
+}
+
+.quantity-selection h4 {
+    margin: 0 0 15px 0;
+    color: var(--grey-five);
+    font-weight: bold;
+}
+
+.food-base-info {
+    margin-bottom: 15px;
+}
+
+.food-brand {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.food-calories {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.quantity-controls-meal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 1rem;
+}
+
+.quantity-fields-meal {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.weight-input-meal {
+    width: 4ch;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.calculated-calories-meal {
+    font-weight: bold;
+    color: #e74c3c;
+    min-width: 80px;
+    text-align: right;
+}
+
+.quantity-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-add-to-meal {
+    background-color: var(--yellow-strongest);
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-add-to-meal:hover {
+    background-color: var(--dark-yellow);
+}
+
+.btn-cancel {
+    background-color: var(--grey-two);
+    color: var(--grey-five);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background-color: var(--grey-three);
 }
 </style>
